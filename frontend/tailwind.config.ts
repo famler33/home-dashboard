@@ -4,6 +4,7 @@ import {
   colorTokens,
   hexToRgbChannels,
   phoneTypeScalePx,
+  tabletFontSizeCss,
   tabletMediaQuery,
   tabletTypeScale,
   themes,
@@ -38,12 +39,7 @@ export default {
         },
         "[data-theme='night']": themeVariables('night'),
         [`@media ${tabletMediaQuery}`]: {
-          ':root': Object.fromEntries(
-            typeTokens.map((t) => [
-              `--text-${t}`,
-              `max(${tabletTypeScale[t].minPx}px, ${tabletTypeScale[t].vw}vw)`,
-            ]),
-          ),
+          ':root': Object.fromEntries(typeTokens.map((t) => [`--text-${t}`, tabletFontSizeCss(t)])),
         },
       });
     }),

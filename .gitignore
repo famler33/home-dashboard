@@ -15,3 +15,8 @@ scripts/deploy.env
 # Playwright
 frontend/test-results/
 frontend/playwright-report/
+
+# Playwright runtime data and generated evidence
+frontend/e2e/.data/
+frontend/e2e/.backup/
+frontend/e2e/screenshots/
