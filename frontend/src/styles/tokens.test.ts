@@ -10,25 +10,31 @@ import {
   type TypeToken,
 } from './tokens';
 
-const tabletWidths = [1280, 1920, 2048];
+const tabletScreens = [
+  { width: 1280, height: 800 },
+  { width: 1920, height: 1200 },
+  { width: 2048, height: 1536 },
+];
 
 // Covers: FR-3, NFR-4, AC-2
 describe('type scale tokens', () => {
   it('keeps every tablet type token at or above 28px at 1280, 1920 and 2048 px widths', () => {
     for (const token of Object.keys(tabletTypeScale) as TypeToken[]) {
-      for (const width of tabletWidths) {
-        expect(fontSizeAt(token, width), `${token} at ${width}`).toBeGreaterThanOrEqual(28);
+      for (const { width, height } of tabletScreens) {
+        expect(fontSizeAt(token, width, height), `${token} at ${width}`).toBeGreaterThanOrEqual(28);
       }
     }
   });
 
   it('grows with the screen above the floor', () => {
-    expect(fontSizeAt('clock', 2048)).toBeGreaterThan(fontSizeAt('clock', 1280));
+    expect(fontSizeAt('clock', 2048, 1536)).toBeGreaterThan(fontSizeAt('clock', 1280, 800));
   });
 
-  it('keeps the clock at or above 160px', () => {
-    for (const width of tabletWidths) {
-      expect(fontSizeAt('clock', width)).toBeGreaterThanOrEqual(160);
+  it('keeps the clock at or above 112px and within 15% of the screen height', () => {
+    for (const { width, height } of tabletScreens) {
+      const size = fontSizeAt('clock', width, height);
+      expect(size).toBeGreaterThanOrEqual(112);
+      expect(size).toBeLessThanOrEqual(Math.max(112, height * 0.15));
     }
   });
 });
