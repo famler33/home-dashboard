@@ -33,4 +33,9 @@ export default tseslint.config(
     ignores: ['src/**'],
     rules: { 'react/jsx-no-literals': 'off' },
   },
+  {
+    // Tests render throw-away fixture text; the rule protects shipped UI only.
+    files: ['**/*.test.{ts,tsx}', 'src/test-utils.tsx'],
+    rules: { 'react/jsx-no-literals': 'off', 'no-restricted-syntax': 'off' },
+  },
 );
