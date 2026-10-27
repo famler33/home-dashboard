@@ -11,7 +11,7 @@ describe('registerSources', () => {
   it('refreshes every source on its own interval', async () => {
     const time = createFakeTime();
     const scheduler = createScheduler({ clock: time, timers: time, logger: logger() });
-    const refresh = vi.fn(async () => {});
+    const refresh = vi.fn<(source: Source) => Promise<void>>(async () => {});
     const fast: Source = {
       id: 'fast',
       intervalSeconds: 10,
@@ -29,7 +29,7 @@ describe('registerSources', () => {
     registerSources(scheduler, { refresh }, [fast, slow]);
 
     await time.advance(60_000);
-    const calls = refresh.mock.calls.map(([source]) => (source as Source).id);
+    const calls = refresh.mock.calls.map(([source]) => source.id);
     expect(calls.filter((id) => id === 'fast')).toHaveLength(7);
     expect(calls.filter((id) => id === 'slow')).toHaveLength(2);
     await scheduler.stop();
