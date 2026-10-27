@@ -35,12 +35,12 @@ export const themes: Record<ThemeName, Record<ColorToken, string>> = {
 export type TypeToken = 'caption' | 'body' | 'title' | 'display' | 'clock';
 
 /** Tablet layout: `max(minPx, vw vw)`; the floor keeps the smallest text readable from 2-3 m. */
-export const tabletTypeScale: Record<TypeToken, { minPx: number; vw: number }> = {
+export const tabletTypeScale: Record<TypeToken, { minPx: number; vw: number; vh?: number }> = {
   caption: { minPx: 28, vw: 1.35 },
   body: { minPx: 32, vw: 1.6 },
   title: { minPx: 40, vw: 2.1 },
   display: { minPx: 64, vw: 4.2 },
-  clock: { minPx: 160, vw: 11 },
+  clock: { minPx: 112, vw: 9, vh: 15 },
 };
 
 /** Phone layout: normal reading distance. */
@@ -55,9 +55,22 @@ export const phoneTypeScalePx: Record<TypeToken, number> = {
 /** Landscape screens from tablet size up use the wall layout, everything else the phone layout. */
 export const tabletMediaQuery = '(min-width: 900px) and (orientation: landscape)';
 
-export function fontSizeAt(token: TypeToken, viewportWidthPx: number): number {
-  const { minPx, vw } = tabletTypeScale[token];
-  return Math.max(minPx, (vw / 100) * viewportWidthPx);
+export function fontSizeAt(
+  token: TypeToken,
+  viewportWidthPx: number,
+  viewportHeightPx: number,
+): number {
+  const { minPx, vw, vh } = tabletTypeScale[token];
+  const byWidth = (vw / 100) * viewportWidthPx;
+  const byHeight = vh === undefined ? Number.POSITIVE_INFINITY : (vh / 100) * viewportHeightPx;
+  return Math.max(minPx, Math.min(byWidth, byHeight));
+}
+
+/** CSS value of a tablet type token: `max(floor, min(width part, height part))`. */
+export function tabletFontSizeCss(token: TypeToken): string {
+  const { minPx, vw, vh } = tabletTypeScale[token];
+  const inner = vh === undefined ? `${vw}vw` : `min(${vw}vw, ${vh}vh)`;
+  return `max(${minPx}px, ${inner})`;
 }
 
 function channel(value: number): number {

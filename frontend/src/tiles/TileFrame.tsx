@@ -40,7 +40,7 @@ export function TileFrame({ title, status, ageSeconds, index, children }: Props)
       aria-labelledby={headingId}
       data-status={status}
       style={{ '--i': index } as CSSProperties}
-      className="animate-tile-in flex min-h-0 flex-col gap-4 rounded-3xl bg-surface-raised p-6 shadow-sm"
+      className="animate-tile-in flex h-full min-h-0 flex-col gap-3 overflow-hidden rounded-3xl bg-surface-raised p-5 shadow-sm"
     >
       <h2
         id={headingId}

@@ -18,14 +18,14 @@ export function RollingDigit({ value }: { value: string }) {
       aria-hidden="true"
       className="relative inline-block h-[1.1em] w-[0.62em] overflow-hidden text-center align-bottom"
     >
-      <AnimatePresence initial={false} mode="popLayout">
+      <AnimatePresence initial={false}>
         <m.span
           key={value}
           initial={{ y: '60%', opacity: 0 }}
           animate={{ y: '0%', opacity: 1 }}
           exit={{ y: '-60%', opacity: 0 }}
           transition={{ type: 'spring', stiffness: 140, damping: 22 }}
-          className="inline-block"
+          className="absolute inset-0 flex items-center justify-center"
         >
           {value}
         </m.span>

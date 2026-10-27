@@ -56,12 +56,18 @@ export function TileState({ kind }: { kind: StateKind }) {
   const view = stateViews[kind];
   const Icon = view.icon;
   return (
-    <div className="flex h-full flex-col items-center justify-center gap-3 text-center text-ink-muted">
-      <Icon aria-hidden="true" data-state-icon={view.iconName} className="h-[2em] w-[2em]" />
-      <p data-testid="state-title" className="text-title text-ink">
-        {t(view.titleKey)}
-      </p>
-      <p className="text-caption">{t(view.hintKey)}</p>
+    <div className="flex h-full items-center justify-center gap-5 text-ink-muted">
+      <Icon
+        aria-hidden="true"
+        data-state-icon={view.iconName}
+        className="h-[1.6em] w-[1.6em] shrink-0"
+      />
+      <div className="flex min-w-0 flex-col gap-1">
+        <p data-testid="state-title" className="text-title text-ink">
+          {t(view.titleKey)}
+        </p>
+        <p className="text-caption">{t(view.hintKey)}</p>
+      </div>
     </div>
   );
 }

@@ -61,9 +61,19 @@ export function Shell({ registry = tileRegistry, layout }: Props) {
         <div className="animate-ambient absolute -left-1/4 -top-1/4 h-[70%] w-[60%] rounded-full bg-accent/10 blur-3xl" />
         <div className="animate-ambient absolute -bottom-1/4 -right-1/4 h-[60%] w-[55%] rounded-full bg-warn/10 blur-3xl [animation-direction:alternate-reverse]" />
       </div>
-      <div className="relative grid h-full grid-rows-[auto_minmax(0,1fr)] gap-8 p-10">
-        <header className="flex items-start justify-between">
+      <div className="relative grid h-full grid-rows-[auto_minmax(0,1fr)] gap-6 p-8">
+        <header className="flex items-start justify-between gap-6">
           <Clock timeZone={timeZone} />
+          <div className="flex flex-1 justify-center pt-2">
+            {showHint && (
+              <p
+                role="note"
+                className="rounded-full bg-surface-raised px-6 py-2 text-caption text-ink-muted shadow-sm"
+              >
+                {t('kiosk.tapForFullscreen')}
+              </p>
+            )}
+          </div>
           <StatusDot offline={offline} />
         </header>
         <main className="grid min-h-0 grid-cols-12 grid-rows-6 gap-6">
@@ -81,14 +91,6 @@ export function Shell({ registry = tileRegistry, layout }: Props) {
           ))}
         </main>
       </div>
-      {showHint && (
-        <p
-          role="note"
-          className="absolute bottom-6 left-1/2 -translate-x-1/2 rounded-full bg-surface-raised px-6 py-2 text-caption text-ink-muted shadow-sm"
-        >
-          {t('kiosk.tapForFullscreen')}
-        </p>
-      )}
     </div>
   );
 }
