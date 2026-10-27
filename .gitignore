@@ -1,0 +1,17 @@
+node_modules/
+dist/
+coverage/
+.env
+*.log
+.DS_Store
+
+# Runtime configuration and data on the NAS never enter the repository
+infrastructure/config/
+infrastructure/data/
+infrastructure/backup/
+**/credentials.yaml
+scripts/deploy.env
+
+# Playwright
+frontend/test-results/
+frontend/playwright-report/
