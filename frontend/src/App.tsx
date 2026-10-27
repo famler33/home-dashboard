@@ -1,6 +1,10 @@
-import { useTranslation } from 'react-i18next';
+import { Shell } from './shell/Shell';
+import { SnapshotProvider } from './snapshot/SnapshotProvider';
 
 export function App() {
-  const { t } = useTranslation();
-  return <h1 className="p-8 text-display">{t('app.name')}</h1>;
+  return (
+    <SnapshotProvider>
+      <Shell />
+    </SnapshotProvider>
+  );
 }

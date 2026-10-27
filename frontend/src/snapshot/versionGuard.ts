@@ -1,3 +1,5 @@
+import { localParts, toMinutes } from '../time';
+
 const RELOAD_GUARD_MS = 60_000;
 const STORAGE_KEY = 'dashboard:lastReloadAt';
 
@@ -43,23 +45,6 @@ export function createReloader(deps: {
   };
 }
 
-function localParts(ms: number, timeZone: string): { key: string; minutes: number } {
-  const parts = new Intl.DateTimeFormat('en-US', {
-    timeZone,
-    hourCycle: 'h23',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-  }).formatToParts(new Date(ms));
-  const get = (type: string): string => parts.find((part) => part.type === type)?.value ?? '00';
-  return {
-    key: `${get('year')}-${get('month')}-${get('day')}`,
-    minutes: Number(get('hour')) * 60 + Number(get('minute')),
-  };
-}
-
 export function localDateKey(ms: number, timeZone: string): string {
   return localParts(ms, timeZone).key;
 }
@@ -71,8 +56,7 @@ export function dailyReloadDue(args: {
   timeZone: string;
   hhmm: string;
 }): boolean {
-  const [hours, minutes] = args.hhmm.split(':').map(Number);
-  const target = (hours ?? 0) * 60 + (minutes ?? 0);
+  const target = toMinutes(args.hhmm);
   const now = localParts(args.now, args.timeZone);
   const started = localParts(args.startedAt, args.timeZone);
   if (now.minutes < target) return false;
