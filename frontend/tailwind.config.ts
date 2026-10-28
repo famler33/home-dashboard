@@ -6,6 +6,7 @@ import {
   phoneTypeScalePx,
   tabletFontSizeCss,
   tabletMediaQuery,
+  tabletShortMediaQuery,
   tabletTypeScale,
   themes,
   type TypeToken,
@@ -32,6 +33,7 @@ export default {
   plugins: [
     plugin(({ addBase, addVariant }) => {
       addVariant('tablet', `@media ${tabletMediaQuery}`);
+      addVariant('tablet-short', `@media ${tabletShortMediaQuery}`);
       addBase({
         ':root': {
           ...themeVariables('day'),

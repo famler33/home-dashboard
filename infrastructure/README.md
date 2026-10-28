@@ -97,6 +97,10 @@ Am Mac im Repository: `scripts/deploy.sh`. Das Skript:
 4. merkt sich den bisherigen Stand in `.previous-build` und startet den neuen,
 5. wartet auf „healthy“ und entfernt alte Image-Versionen (es bleiben `KEEP_TAGS`).
 
+Immer über das Skript ausrollen: Die Compose-Datei enthält einen `build:`-Abschnitt und die Voreinstellung
+`home-dashboard:dev`. Wer das Projekt in Container Manager ohne die gesetzte Build-ID neu startet oder
+neu baut, sucht dieses Image und startet nicht den ausgerollten Stand.
+
 Daten (`data/`), Sicherungen (`backup/`) und `config/` bleiben unverändert. Das geöffnete Tablet erkennt
 die neue Build-ID und lädt sich selbst neu; manuelles Neuladen ist nicht nötig.
 Für einen Probelauf ohne Wirkung: `DRY_RUN=1 scripts/deploy.sh`.
@@ -139,6 +143,8 @@ Das Dashboard läuft im Querformat im Browser im Vollbild. Für den Dauerbetrieb
 - **Nachts:** Das Dashboard dimmt sich selbst ab `display.nightFrom` und verschiebt statische Elemente
   langsam gegen Einbrennen. Die Display-Helligkeit des Tablets zusätzlich niedrig stellen.
 - **Akku:** Das Tablet dauerhaft am Netzteil betreiben; wenn möglich Ladeobergrenze (z. B. 80 %) aktivieren.
+- **Kleine Bildschirme:** Das Wandlayout braucht Querformat mit mindestens 1024 × 700 Bildpunkten (CSS-Pixel; ein
+  iPad mit 2048 × 1536 Pixeln meldet 1024 × 768). Auf kleineren Bildschirmen erscheint die scrollbare Handy-Ansicht.
 - Die Adresse im Browser ist `http://dashboard.home` (oder die feste IP mit Port).
 
 ## Handy

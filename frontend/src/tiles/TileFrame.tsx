@@ -48,7 +48,7 @@ export function TileFrame({ title, status, ageSeconds, index, children }: Props)
       >
         {title}
       </h2>
-      <div className="min-h-0 flex-1">
+      <div className="min-h-0 flex-1 overflow-hidden">
         {showsContent ? children : <TileState kind={status as StateKind} />}
       </div>
       {lastUpdated !== null && (

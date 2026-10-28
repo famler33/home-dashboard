@@ -13,7 +13,7 @@ export function DemoTile({ data }: TileContentProps) {
   const { t } = useTranslation();
   const value = readValue(data);
   return (
-    <div className="flex h-full flex-col items-center justify-center gap-2">
+    <div className="flex h-full items-center justify-center gap-6">
       <p className="text-caption text-ink-muted">{t('demo.value')}</p>
       <p className="text-display tabular-nums">{value ?? ''}</p>
     </div>

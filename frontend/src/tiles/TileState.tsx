@@ -66,7 +66,7 @@ export function TileState({ kind }: { kind: StateKind }) {
         <p data-testid="state-title" className="text-title text-ink">
           {t(view.titleKey)}
         </p>
-        <p className="text-caption">{t(view.hintKey)}</p>
+        <p className="text-caption tablet-short:sr-only">{t(view.hintKey)}</p>
       </div>
     </div>
   );

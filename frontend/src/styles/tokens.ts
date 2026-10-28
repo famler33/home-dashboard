@@ -52,8 +52,15 @@ export const phoneTypeScalePx: Record<TypeToken, number> = {
   clock: 56,
 };
 
-/** Landscape screens from tablet size up use the wall layout, everything else the phone layout. */
-export const tabletMediaQuery = '(min-width: 900px) and (orientation: landscape)';
+/**
+ * Landscape screens of at least 1024 x 700 CSS pixels use the wall layout (a 2048 x 1536 iPad
+ * reports 1024 x 768); smaller screens get the scrollable phone layout.
+ */
+export const tabletMediaQuery =
+  '(min-width: 1024px) and (min-height: 700px) and (orientation: landscape)';
+
+/** Wall layout on low screens: hints are visually hidden so the tiles keep their content. */
+export const tabletShortMediaQuery = `${tabletMediaQuery} and (max-height: 850px)`;
 
 export function fontSizeAt(
   token: TypeToken,

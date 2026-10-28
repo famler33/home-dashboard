@@ -1,6 +1,6 @@
 import fastifyHelmet from '@fastify/helmet';
 import fastifyStatic from '@fastify/static';
-import Fastify, { type FastifyInstance } from 'fastify';
+import Fastify, { LogController, type FastifyInstance } from 'fastify';
 import type { SnapshotStore } from './cache/snapshot-store.js';
 import type { Clock } from './clock.js';
 import type { AppConfig } from './config/load-config.js';
@@ -29,6 +29,10 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
       redact: { paths: redactPaths, censor: '[redacted]' },
       ...(deps.logger?.stream ? { stream: deps.logger.stream } : {}),
     },
+    // The compose health check runs every 30 s; its request lines would only add noise.
+    logController: new LogController({
+      disableRequestLogging: (request) => request.url === '/api/v1/health',
+    }),
     bodyLimit: BODY_LIMIT_BYTES,
     requestTimeout: 15_000,
     connectionTimeout: 15_000,
