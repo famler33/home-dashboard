@@ -240,3 +240,61 @@ describe('Tile (connected)', () => {
     expect(screen.queryByTestId('tile-footer')).toBeNull();
   });
 });
+
+// Covers: FR-5, AC-2, AC-38 (framework extension for tiles with own heading and state texts)
+describe('Tile heading and state texts', () => {
+  it('uses the heading function of the definition when it returns a text', () => {
+    const definition: TileDefinition = {
+      ...demoDefinition,
+      heading: (data) => `Demo · ${(data as { value: number }).value}`,
+    };
+    renderWithProviders(
+      <Tile definition={definition} index={0} />,
+      contextFixture(snapshotFixture({ sources: [sourceFixture({ data: { value: 7 } })] })),
+    );
+    expect(screen.getByRole('region', { name: 'Demo · 7' })).toBeInTheDocument();
+  });
+
+  it('falls back to the base title while no data exists or the function returns null', () => {
+    const definition: TileDefinition = { ...demoDefinition, heading: () => null };
+    renderWithProviders(<Tile definition={definition} index={0} />, contextFixture(null));
+    expect(screen.getByRole('region', { name: 'Demo' })).toBeInTheDocument();
+  });
+
+  it('shows the state texts of the definition for never-loaded and error', () => {
+    const definition: TileDefinition = {
+      ...demoDefinition,
+      stateTexts: {
+        'never-loaded': {
+          titleKey: 'weather.states.neverLoaded.title',
+          hintKey: 'weather.states.neverLoaded.hint',
+        },
+        error: { titleKey: 'weather.states.error.title', hintKey: 'weather.states.error.hint' },
+      },
+    };
+    const neverLoaded = snapshotFixture({
+      sources: [
+        sourceFixture({ status: 'never-loaded', data: null, ageSeconds: null, lastUpdated: null }),
+      ],
+    });
+    const { unmount } = renderWithProviders(
+      <Tile definition={definition} index={0} />,
+      contextFixture(neverLoaded),
+    );
+    expect(screen.getByText(de.weather.states.neverLoaded.title)).toBeInTheDocument();
+    unmount();
+    const failed = snapshotFixture({
+      sources: [
+        sourceFixture({
+          status: 'error',
+          data: null,
+          ageSeconds: null,
+          lastUpdated: null,
+          lastErrorCode: 'SOURCE_FETCH_FAILED',
+        }),
+      ],
+    });
+    renderWithProviders(<Tile definition={definition} index={0} />, contextFixture(failed));
+    expect(screen.getByText(de.weather.states.error.title)).toBeInTheDocument();
+  });
+});
