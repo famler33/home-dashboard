@@ -18,7 +18,7 @@ function ConnectedTile({ definition, index }: Props) {
   const { snapshot, receivedAtMonotonic, nowMono } = useSnapshot();
   const { Component, sourceId } = definition;
 
-  if (sourceId === undefined) {
+  if (sourceId === undefined && definition.deriveEntry === undefined) {
     const title = definition.heading?.(null, t) ?? t(definition.titleKey);
     return (
       <TileFrame title={title} status="fresh" ageSeconds={null} index={index}>
@@ -27,7 +27,9 @@ function ConnectedTile({ definition, index }: Props) {
     );
   }
 
-  const source = snapshot?.sources.find((entry) => entry.id === sourceId);
+  const source = definition.deriveEntry
+    ? definition.deriveEntry(snapshot)
+    : snapshot?.sources.find((entry) => entry.id === sourceId);
   const title = definition.heading?.(source?.data ?? null, t) ?? t(definition.titleKey);
   const status = deriveTileStatus({
     source,

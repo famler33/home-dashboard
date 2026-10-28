@@ -8,6 +8,12 @@ export const colorTokens = [
   'accent',
   'warn',
   'danger',
+  'cal-blue',
+  'cal-green',
+  'cal-orange',
+  'cal-purple',
+  'cal-teal',
+  'cal-rose',
 ] as const;
 export type ColorToken = (typeof colorTokens)[number];
 
@@ -20,6 +26,12 @@ export const themes: Record<ThemeName, Record<ColorToken, string>> = {
     accent: '#1d4e9e',
     warn: '#7a4a00',
     danger: '#a5281f',
+    'cal-blue': '#1d5fbf',
+    'cal-green': '#1f7a3f',
+    'cal-orange': '#b4510b',
+    'cal-purple': '#7b3fb5',
+    'cal-teal': '#0b7a75',
+    'cal-rose': '#c2185b',
   },
   night: {
     surface: '#0a0d13',
@@ -29,6 +41,12 @@ export const themes: Record<ThemeName, Record<ColorToken, string>> = {
     accent: '#86b4ff',
     warn: '#f0b14a',
     danger: '#ff8f85',
+    'cal-blue': '#7db2ff',
+    'cal-green': '#6fd08c',
+    'cal-orange': '#ffa35c',
+    'cal-purple': '#c49bff',
+    'cal-teal': '#5fd6cf',
+    'cal-rose': '#ff8fb8',
   },
 };
 

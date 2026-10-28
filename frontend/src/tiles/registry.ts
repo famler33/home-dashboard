@@ -74,7 +74,10 @@ export function visibleTiles(
 ): TileDefinition[] {
   const sourceIds = new Set(snapshot?.sources.map((source) => source.id));
   const shown = registry.filter(
-    (tile) => !tile.requiresSource || (tile.sourceId !== undefined && sourceIds.has(tile.sourceId)),
+    (tile) =>
+      !tile.requiresSource ||
+      (tile.sourceId !== undefined && sourceIds.has(tile.sourceId)) ||
+      (tile.sourceIds?.some((id) => sourceIds.has(id)) ?? false),
   );
   const replaced = new Set(shown.flatMap((tile) => (tile.replaces ? [tile.replaces] : [])));
   return shown.filter((tile) => !replaced.has(tile.id));

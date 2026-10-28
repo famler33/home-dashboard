@@ -1,4 +1,5 @@
 import type { ParseKeys, TFunction } from 'i18next';
+import type { Snapshot, SourceSnapshot } from '../api/types';
 import type { ComponentType, ReactNode } from 'react';
 
 export interface TileContentProps {
@@ -29,6 +30,10 @@ export interface TileDefinition {
   freshFooter?: boolean;
   /** Backend source whose freshness this tile shows. */
   sourceId?: string | undefined;
+  /** The tile shows when any of these sources is in the snapshot (with `requiresSource`). */
+  sourceIds?: readonly string[];
+  /** Entry that drives the tile frame when several sources feed the tile. */
+  deriveEntry?: (snapshot: Snapshot | null) => SourceSnapshot | undefined;
   /** Hide the tile while its source is absent from the snapshot. */
   requiresSource?: boolean;
   /** Id of a tile this one takes the place of while it is visible. */

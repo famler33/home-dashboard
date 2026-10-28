@@ -14,6 +14,16 @@ export interface SourceSnapshot {
 export interface SnapshotSettings {
   timezone: string;
   display: { nightFrom: string; nightTo: string; dailyReloadAt: string };
+  /** Present when the calendar tile is enabled: names, colours and roles, never addresses. */
+  calendar?: {
+    kitaKeyword: string;
+    calendars: {
+      id: 'family' | 'person-1' | 'person-2';
+      name: string;
+      color: 'blue' | 'green' | 'orange' | 'purple' | 'teal' | 'rose';
+      role: 'family' | 'person';
+    }[];
+  };
 }
 
 export interface Snapshot {
