@@ -1,6 +1,5 @@
 import { spawnSync } from 'node:child_process';
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync, cpSync } from 'node:fs';
-import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { repoRoot } from './helpers/repo.js';
@@ -13,6 +12,8 @@ function docker(args: string[], timeout = 600_000) {
 }
 
 // Covers: FR-18, NFR-8, AC-29, AC-30, AC-33
+// The test folder lives inside the repository because VM-based Docker setups (Colima, Docker
+// Desktop) only share the home folder with the daemon, not the system temp directory.
 // These tests need a running Docker daemon (Mac with Docker Desktop, or CI). Without one they
 // are skipped and the acceptance criteria stay unverified - see the verification report.
 describe.skipIf(!dockerAvailable)('container image', () => {
@@ -47,7 +48,7 @@ describe.skipIf(!dockerAvailable)('container image', () => {
   }, 900_000);
 
   it('starts with the example configuration and answers /api/v1/health', async () => {
-    const root = mkdtempSync(join(tmpdir(), 'dashboard-image-'));
+    const root = mkdtempSync(join(repoRoot, '.docker-test-'));
     try {
       for (const name of ['config', 'data', 'backup']) mkdirSync(join(root, name));
       cpSync(

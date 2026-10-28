@@ -12,21 +12,21 @@ FROM base AS frontend-build
 ARG BUILD_ID=dev
 WORKDIR /app/frontend
 COPY frontend/package.json frontend/pnpm-lock.yaml ./
-RUN pnpm install --frozen-lockfile
+RUN pnpm install --frozen-lockfile --ignore-scripts
 COPY frontend/ ./
 RUN BUILD_ID=${BUILD_ID} pnpm exec vite build
 
 FROM base AS backend-build
 WORKDIR /app/backend
 COPY backend/package.json backend/pnpm-lock.yaml ./
-RUN pnpm install --frozen-lockfile
+RUN pnpm install --frozen-lockfile --ignore-scripts
 COPY backend/ ./
 RUN pnpm build
 
 FROM base AS backend-deps
 WORKDIR /app/backend
 COPY backend/package.json backend/pnpm-lock.yaml ./
-RUN pnpm install --frozen-lockfile --prod
+RUN pnpm install --frozen-lockfile --ignore-scripts --prod
 
 FROM --platform=linux/amd64 node:${NODE_VERSION}-bookworm-slim AS runtime
 ARG BUILD_ID=dev
