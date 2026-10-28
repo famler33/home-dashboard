@@ -93,9 +93,13 @@ export function createAlertsSource(deps: {
       alerts.sort((a, b) => b.rank - a.rank || a.onsetMs - b.onsetMs);
 
       return {
-        alerts: alerts
-          .slice(0, MAX_ALERTS)
-          .map(({ rank: _rank, onsetMs: _onsetMs, ...alert }) => alert),
+        alerts: alerts.slice(0, MAX_ALERTS).map((alert) => ({
+          id: alert.id,
+          type: alert.type,
+          severity: alert.severity,
+          onset: alert.onset,
+          expires: alert.expires,
+        })),
       };
     },
   };
