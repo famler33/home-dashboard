@@ -138,3 +138,17 @@ export function splitKita(
     .filter((group) => group.items.length > 0 || group.kind === 'today');
   return { kita, days: rest };
 }
+
+/** The Kita title without the keyword, so "Kita Kind Hinbringen" reads "Kind Hinbringen". */
+export function kitaLabel(title: string, keyword: string): string {
+  const full = title.trim();
+  const needle = keyword.trim();
+  if (needle === '') return full;
+  const escaped = needle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const stripped = full
+    .replace(new RegExp(escaped, 'i'), '')
+    .replace(/^[\s:–—\-·,]+|[\s:–—\-·,]+$/g, '')
+    .replace(/\s{2,}/g, ' ')
+    .trim();
+  return stripped === '' ? full : stripped;
+}

@@ -6,7 +6,14 @@ export interface FitPlan {
   /** Height of the "+ n weitere" row, reserved whenever something has to be dropped. */
   more: number;
   /** Per day the heading height and the height of every body row (the empty-today text is one row). */
-  days: { date: string; head: number; rows: number[]; partial: boolean }[];
+  days: {
+    date: string;
+    head: number;
+    rows: number[];
+    partial: boolean;
+    /** The rows are placeholder text (empty today), not appointments, and never counted as hidden. */
+    phantom?: boolean;
+  }[];
 }
 
 export interface FitResult {
@@ -78,7 +85,7 @@ export function fitRows(plan: FitPlan, budget: number): FitResult {
     }
     if (available >= day.head && day.partial) {
       const shown = Math.max(0, rowsThatFit(day.head, day.rows, available));
-      more += day.rows.length - shown;
+      more += day.phantom ? 0 : day.rows.length - shown;
       available = 0;
       return { date: day.date, shown, collapsed: false, hidden: false };
     }
@@ -86,7 +93,7 @@ export function fitRows(plan: FitPlan, budget: number): FitResult {
       available -= day.head;
       return { date: day.date, shown: 0, collapsed: true, hidden: false };
     }
-    more += day.rows.length;
+    more += day.phantom ? 0 : day.rows.length;
     return { date: day.date, shown: 0, collapsed: false, hidden: true };
   });
 

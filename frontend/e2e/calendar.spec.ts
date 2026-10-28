@@ -30,7 +30,7 @@ test.describe('calendar tile on the wall', () => {
     await page.waitForTimeout(500);
     await expect(tile(page).getByTestId('kita-block')).toBeVisible();
     await expect(tile(page).getByRole('tablist')).toBeVisible();
-    expect(await tile(page).getByTestId('event-row').count()).toBeGreaterThan(3);
+    expect(await tile(page).getByTestId('event-row').count()).toBeGreaterThanOrEqual(3);
   });
 
   test('switches between the tabs and returns to Alle after a minute', async ({ page }) => {

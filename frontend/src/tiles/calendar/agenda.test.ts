@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { applyTab, buildDays, dayKind, splitKita, visibleEvents } from './agenda';
+import { applyTab, buildDays, dayKind, kitaLabel, splitKita, visibleEvents } from './agenda';
 import { allDay, calendarNow, settingsFixture, tag, timed, tz } from './test-data';
 
 const now = calendarNow; // 2026-10-28 11:00 Berlin

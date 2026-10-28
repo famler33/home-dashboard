@@ -1,8 +1,16 @@
 import { useTranslation } from 'react-i18next';
 import type { Snapshot, SourceSnapshot } from '../../api/types';
-import { applyTab, buildDays, splitKita, visibleEvents, type DayItem } from './agenda';
+import {
+  applyTab,
+  buildDays,
+  dayKind,
+  kitaLabel,
+  splitKita,
+  visibleEvents,
+  type DayItem,
+} from './agenda';
 import { fitRows, type FitResult } from './fit-rows';
-import { formatDayDate, formatTime } from './format';
+import { formatDayDate, formatTime, localDate } from './format';
 import { dotClass, Legend, type CalendarProblem } from './Legend';
 import { mergeCalendars } from './merge';
 import type { CalendarTab, TaggedEvent } from './types';
@@ -49,6 +57,11 @@ export function CalendarView({ snapshot, now, layout, tab, budget }: Props) {
     tab,
   });
   const emphasis = tab === 'all';
+  const kitaColumns = kita.reduce<Map<string, typeof kita>>((map, entry) => {
+    map.set(entry.date, [...(map.get(entry.date) ?? []), entry]);
+    return map;
+  }, new Map());
+  const kitaLines = Math.max(0, ...[...kitaColumns.values()].map((entries) => entries.length));
   const noEvents = kita.length === 0 && days.every((group) => group.items.length === 0);
   // Without a budget prop the body is measured (pixels); a budget prop counts uniform rows.
   const unit = { head: 1, body: 1, caption: 1 };
@@ -64,13 +77,14 @@ export function CalendarView({ snapshot, now, layout, tab, budget }: Props) {
     wall && effectiveBudget !== null && heights !== null
       ? fitRows(
           {
-            kita: kita.map(() => heights.body),
-            kitaHead: heights.head + (budget === undefined ? 8 : 0),
+            kita: Array.from({ length: kitaLines }, () => heights.body),
+            kitaHead: heights.head * 2 + (budget === undefined ? 8 : 0),
             more: heights.caption,
             days: days.map((group) => ({
               date: group.date,
               head: heights.head,
               rows: group.items.length === 0 ? [heights.body] : group.items.map(rowHeight),
+              phantom: group.items.length === 0,
               partial: group.kind !== 'date',
             })),
           },
@@ -141,7 +155,7 @@ export function CalendarView({ snapshot, now, layout, tab, budget }: Props) {
         ? t('calendar.tomorrow')
         : formatDayDate(date, i18n.language);
 
-  const shownKita = fit ? fit.kita : kita.length;
+  const shownKita = fit ? fit.kita : kitaLines;
 
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-2">
@@ -174,33 +188,43 @@ export function CalendarView({ snapshot, now, layout, tab, budget }: Props) {
                   <h3 className="text-caption font-semibold text-ink-muted">
                     {t('calendar.kita')}
                   </h3>
-                  <ul className="flex flex-col">
-                    {kita.slice(0, shownKita).map((entry) => (
-                      <li
-                        key={entry.key}
-                        data-testid="kita-row"
-                        className="flex items-baseline gap-3 text-body font-semibold text-ink"
-                      >
-                        <span className="shrink-0 text-ink-muted">
-                          {entry.date === days[0]?.date && days[0]?.kind === 'today'
-                            ? t('calendar.today')
-                            : t('calendar.tomorrow')}
-                        </span>
-                        <span className="shrink-0 tabular-nums">
-                          {entry.event.allDay
-                            ? t('calendar.allDay')
-                            : formatTime(entry.event.start, timeZone)}
-                        </span>
-                        <span
-                          aria-hidden="true"
-                          className={`h-3 w-3 shrink-0 self-center rounded-full ${dotClass[entry.event.color]}`}
-                        />
-                        <span className="min-w-0 truncate" title={entry.event.title}>
-                          {entry.event.title}
-                        </span>
-                      </li>
+                  <div className={wall ? 'grid grid-cols-2 gap-x-4' : 'flex flex-col'}>
+                    {[...kitaColumns.entries()].map(([date, entries]) => (
+                      <div key={date} data-testid="kita-day" className="min-w-0">
+                        <h4 className="text-caption text-ink-muted">
+                          {dayLabel(dayKind(date, localDate(now, timeZone)), date)}
+                        </h4>
+                        <ul className="flex flex-col">
+                          {entries.slice(0, shownKita).map((entry) => (
+                            <li
+                              key={entry.key}
+                              data-testid="kita-row"
+                              className="flex items-baseline gap-2 text-body font-semibold text-ink"
+                            >
+                              <span className="shrink-0 tabular-nums">
+                                {entry.event.allDay
+                                  ? t('calendar.allDay')
+                                  : formatTime(entry.event.start, timeZone)}
+                              </span>
+                              <span
+                                aria-hidden="true"
+                                className={`h-3 w-3 shrink-0 self-center rounded-full ${dotClass[entry.event.color]}`}
+                              />
+                              <span className="sr-only">{`${entry.event.calendarName}: ${entry.event.title}`}</span>
+                              <span
+                                aria-hidden="true"
+                                data-testid="kita-title"
+                                title={entry.event.title}
+                                className="min-w-0 truncate"
+                              >
+                                {kitaLabel(entry.event.title, settings.kitaKeyword)}
+                              </span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
                     ))}
-                  </ul>
+                  </div>
                 </section>
               )}
               {days.map((group, position) => {
@@ -220,13 +244,15 @@ export function CalendarView({ snapshot, now, layout, tab, budget }: Props) {
                     </h3>
                     {!plan?.collapsed && (
                       <ul className="flex flex-col">
-                        {count === 0 ? (
-                          <li className="text-body text-ink-muted">{t('calendar.noneToday')}</li>
-                        ) : (
-                          group.items
-                            .slice(0, plan ? plan.shown : count)
-                            .map((item) => row(item.event, item.part, item.key))
-                        )}
+                        {count === 0
+                          ? (!plan || plan.shown > 0) && (
+                              <li className="text-body text-ink-muted">
+                                {t('calendar.noneToday')}
+                              </li>
+                            )
+                          : group.items
+                              .slice(0, plan ? plan.shown : count)
+                              .map((item) => row(item.event, item.part, item.key))}
                       </ul>
                     )}
                   </section>
