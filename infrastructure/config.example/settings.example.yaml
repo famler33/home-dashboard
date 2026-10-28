@@ -27,6 +27,10 @@ sources:
   demo:
     # Leave this off in daily use.
     enabled: false
+  # Weather tile: forecast, rain radar and warnings from open weather services.
+  weather:
+    # Set to false to switch the whole weather tile off.
+    enabled: true
 
 # Nightly copy of the database into the backup folder.
 backup:

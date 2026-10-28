@@ -18,7 +18,12 @@ export const settingsSchema = Type.Object(
       { additionalProperties: false },
     ),
     sources: Type.Object(
-      { demo: Type.Object({ enabled: Type.Boolean() }, { additionalProperties: false }) },
+      {
+        demo: Type.Object({ enabled: Type.Boolean() }, { additionalProperties: false }),
+        weather: Type.Optional(
+          Type.Object({ enabled: Type.Boolean() }, { additionalProperties: false }),
+        ),
+      },
       { additionalProperties: false },
     ),
     backup: Type.Object(

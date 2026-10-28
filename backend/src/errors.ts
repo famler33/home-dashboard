@@ -2,13 +2,20 @@ import { Type } from '@sinclair/typebox';
 import type { FastifyError, FastifyInstance } from 'fastify';
 
 export type ApiErrorCode =
-  'NOT_FOUND' | 'VALIDATION_FAILED' | 'PAYLOAD_TOO_LARGE' | 'INTERNAL_ERROR';
+  | 'NOT_FOUND'
+  | 'VALIDATION_FAILED'
+  | 'PAYLOAD_TOO_LARGE'
+  | 'INTERNAL_ERROR'
+  | 'RADAR_NOT_AVAILABLE'
+  | 'UPSTREAM_UNAVAILABLE';
 
 const messages: Record<ApiErrorCode, string> = {
   NOT_FOUND: 'Resource not found',
   VALIDATION_FAILED: 'Request is not valid',
   PAYLOAD_TOO_LARGE: 'Request body is too large',
   INTERNAL_ERROR: 'Internal server error',
+  RADAR_NOT_AVAILABLE: 'No radar data is available yet',
+  UPSTREAM_UNAVAILABLE: 'An upstream service is unavailable',
 };
 
 export const errorEnvelopeSchema = Type.Object({

@@ -2,6 +2,7 @@ import fastifyHelmet from '@fastify/helmet';
 import fastifyStatic from '@fastify/static';
 import Fastify, { LogController, type FastifyInstance } from 'fastify';
 import type { SnapshotStore } from './cache/snapshot-store.js';
+import { isCacheableApiRoute } from './cache-policy.js';
 import type { Clock } from './clock.js';
 import type { AppConfig } from './config/load-config.js';
 import { registerErrorHandling } from './errors.js';
@@ -59,7 +60,9 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
   });
 
   app.addHook('onSend', async (request, reply, payload) => {
-    if (request.url.startsWith('/api/')) reply.header('cache-control', 'no-store');
+    if (request.url.startsWith('/api/') && !isCacheableApiRoute(request.url)) {
+      reply.header('cache-control', 'no-store');
+    }
     return payload;
   });
 
