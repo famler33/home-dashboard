@@ -52,6 +52,11 @@ await check(
   },
 );
 
-const tile = await fetch('https://tile.openstreetmap.org/0/0/0.png', { headers, redirect: 'error' }).catch(() => undefined);
-console.log(tile?.ok ? 'ok   openstreetmap tile: reachable' : 'FAIL openstreetmap tile: not reachable');
+const tile = await fetch('https://tile.openstreetmap.org/0/0/0.png', {
+  headers,
+  redirect: 'error',
+}).catch(() => undefined);
+console.log(
+  tile?.ok ? 'ok   openstreetmap tile: reachable' : 'FAIL openstreetmap tile: not reachable',
+);
 if (!tile?.ok) process.exitCode = 1;
