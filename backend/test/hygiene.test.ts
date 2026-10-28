@@ -50,6 +50,7 @@ describe('repository hygiene', () => {
       const config = loadConfig({ CONFIG_DIR: dir });
       expect(config.settings.timezone).toBe('Europe/Berlin');
       expect(config.settings.backup.retention).toBe(14);
+      expect(config.settings.sources.weather?.enabled).toBe(true);
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }

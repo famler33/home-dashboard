@@ -58,6 +58,37 @@ describe('loadConfig', () => {
     expect(projectSettings(load().settings).display.nightFrom).toBe('23:15');
   });
 
+  it('treats a missing sources.weather key as enabled and accepts an explicit switch', () => {
+    write('settings.yaml', validSettings);
+    expect(load().settings.sources.weather?.enabled ?? true).toBe(true);
+    write(
+      'settings.yaml',
+      validSettings.replace(
+        'demo:\n    enabled: false',
+        'demo:\n    enabled: false\n  weather:\n    enabled: false',
+      ),
+    );
+    expect(load().settings.sources.weather?.enabled).toBe(false);
+  });
+
+  it('rejects a weather switch that is not a boolean naming the key', () => {
+    write(
+      'settings.yaml',
+      validSettings.replace(
+        'demo:\n    enabled: false',
+        'demo:\n    enabled: false\n  weather:\n    enabled: SECRET-BAD',
+      ),
+    );
+    let message = '';
+    try {
+      load();
+    } catch (error) {
+      message = (error as Error).message;
+    }
+    expect(message).toContain('sources.weather.enabled');
+    expect(message).not.toContain('SECRET-BAD');
+  });
+
   it('rejects a missing settings file naming the file', () => {
     expect(() => load()).toThrowError(ConfigError);
     expect(() => load()).toThrowError(/settings\.yaml/);
