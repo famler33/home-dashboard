@@ -26,7 +26,7 @@ export function ViewIndicators({ index, onSelect }: Props) {
               event.stopPropagation();
               onSelect(position);
             }}
-            className="-my-4 flex min-h-14 min-w-14 items-center justify-center"
+            className="flex min-h-14 min-w-14 items-center justify-center"
           >
             <span
               data-testid="indicator-shape"

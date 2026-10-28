@@ -54,4 +54,13 @@ describe('Clock', () => {
     unmount();
     expect(vi.getTimerCount()).toBe(0);
   });
+
+  it('offers a compact date next to the clock on short screens', () => {
+    renderWithProviders(<Clock timeZone="UTC" />);
+    const long = screen.getByText('Mittwoch, 28. Oktober 2026');
+    expect(long.className).toContain('tablet-short:hidden');
+    const short = screen.getByText('Mi., 28.10.2026');
+    expect(short.className).toContain('tablet-short:inline');
+    expect(short).toHaveAttribute('aria-hidden', 'true');
+  });
 });

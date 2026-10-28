@@ -14,9 +14,11 @@ interface Props {
   rain: RainStatement | null;
   layout: 'wall' | 'phone';
   timeZone: string;
+  /** A warning is shown: on short screens it takes the place of the hourly strip. */
+  alertActive?: boolean;
 }
 
-export function NowView({ weather, rain, layout, timeZone }: Props) {
+export function NowView({ weather, rain, layout, timeZone, alertActive = false }: Props) {
   const { t } = useTranslation();
   const { current, today } = weather;
   const wall = layout === 'wall';
@@ -58,7 +60,10 @@ export function NowView({ weather, rain, layout, timeZone }: Props) {
         )}
       </div>
 
-      <ul className={`grid gap-2 ${wall ? 'grid-cols-5' : 'grid-cols-4'}`}>
+      <ul
+        data-testid="hour-strip"
+        className={`grid gap-2 ${wall ? 'grid-cols-5' : 'grid-cols-4'} ${wall && alertActive ? 'tablet-short:hidden' : ''}`}
+      >
         {slots.map((slot) => (
           <li
             key={slot.time}

@@ -26,6 +26,12 @@ interface Props {
   timeZone: string;
 }
 
+/** True when the alerts source is fresh and has an unexpired alert. */
+export function hasActiveAlert(alerts: SourceSnapshot | undefined, now: number): boolean {
+  if (!alerts || alerts.status !== 'fresh' || !isAlertsPayload(alerts.data)) return false;
+  return alerts.data.alerts.some((alert) => Date.parse(alert.expires) > now);
+}
+
 export function AlertBanner({ alerts, weatherLoaded, now, timeZone }: Props) {
   const { t } = useTranslation();
   if (!alerts) return null;

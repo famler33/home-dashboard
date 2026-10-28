@@ -181,6 +181,37 @@ describe('NowView', () => {
     expect(screen.getByTestId('hour-strip').className).not.toContain('tablet-short:hidden');
   });
 
+  it('offers a shorter rain line on short screens next to the long one', () => {
+    renderWithProviders(
+      <NowView weather={weather()} rain={{ kind: 'none' }} layout="wall" timeZone={timeZone} />,
+    );
+    const line = screen.getByTestId('rain-line');
+    expect(within(line).getByText(de.weather.rain.none).className).toContain('tablet-short:hidden');
+    const short = within(line).getByText(de.weather.rain.noneShort);
+    expect(short.className).toContain('tablet-short:inline');
+    expect(short).toHaveAttribute('aria-hidden', 'true');
+  });
+
+  it('uses only the long rain line on the phone', () => {
+    renderWithProviders(
+      <NowView weather={weather()} rain={{ kind: 'none' }} layout="phone" timeZone={timeZone} />,
+    );
+    expect(screen.queryByText(de.weather.rain.noneShort)).toBeNull();
+  });
+
+  it('hides the rain line on short screens while a warning is active', () => {
+    renderWithProviders(
+      <NowView
+        weather={weather()}
+        rain={{ kind: 'none' }}
+        layout="wall"
+        timeZone={timeZone}
+        alertActive
+      />,
+    );
+    expect(screen.getByTestId('rain-line').className).toContain('tablet-short:hidden');
+  });
+
   it('uses degree signs and no Fahrenheit', () => {
     renderWithProviders(
       <NowView weather={weather()} rain={null} layout="wall" timeZone={timeZone} />,

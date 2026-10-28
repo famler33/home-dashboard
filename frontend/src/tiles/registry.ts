@@ -1,5 +1,6 @@
 import type { Snapshot } from '../api/types';
 import { DemoTile } from './demo/DemoTile';
+import { weatherHeading } from './weather/heading';
 import { isWeatherPayload } from './weather/types';
 import { WeatherTile } from './weather/WeatherTile';
 import { PlaceholderTile } from './PlaceholderTile';
@@ -35,8 +36,7 @@ export const tileRegistry: readonly TileDefinition[] = [
     replaces: 'weather',
     tablet: { col: 1, row: 1, colSpan: 5, rowSpan: 4 },
     phoneOrder: 2,
-    heading: (data, t) =>
-      isWeatherPayload(data) ? t('weather.heading', { location: data.location.name }) : null,
+    heading: weatherHeading,
     stateTexts: {
       'never-loaded': {
         titleKey: 'weather.states.neverLoaded.title',

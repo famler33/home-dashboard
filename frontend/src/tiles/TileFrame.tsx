@@ -8,7 +8,7 @@ import type { StateTextKeys } from './types';
 export type FrameStatus = TileStatus | 'crashed';
 
 interface Props {
-  title: string;
+  title: ReactNode;
   status: FrameStatus;
   /** Age of the data in seconds, `null` when there is none or the tile has no source. */
   ageSeconds: number | null;

@@ -1,5 +1,5 @@
 import type { ParseKeys, TFunction } from 'i18next';
-import type { ComponentType } from 'react';
+import type { ComponentType, ReactNode } from 'react';
 
 export interface TileContentProps {
   /** Last known payload of the bound source, `null` for tiles without a source. */
@@ -22,7 +22,7 @@ export interface TileDefinition {
   id: string;
   titleKey: ParseKeys;
   /** Full heading derived from the payload (which is `null` until data exists); `null` keeps the base title. */
-  heading?: (data: unknown, t: TFunction) => string | null;
+  heading?: (data: unknown, t: TFunction) => ReactNode | null;
   /** Replaces the generic texts of the never-loaded and error states. */
   stateTexts?: Partial<Record<'never-loaded' | 'error', StateTextKeys>>;
   /** Set to false to show the update footer only while the data is stale. */

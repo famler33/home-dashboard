@@ -50,6 +50,16 @@ describe('AlertBanner', () => {
     expect(container.querySelector('svg')).not.toBeNull();
   });
 
+  it('splits the text into two compact lines: type and period, then severity', () => {
+    show(entry([alert(), alert({ id: 'b', severity: 'minor' })]));
+    const lines = screen.getAllByTestId('alert-line');
+    expect(lines).toHaveLength(2);
+    expect(lines[0]).toHaveTextContent('Gewitter');
+    expect(lines[0]).toHaveTextContent('ab 17:00 Uhr');
+    expect(lines[1]).toHaveTextContent(de.weather.alerts.level.severe);
+    expect(lines[1]).toHaveTextContent('+1 weitere');
+  });
+
   it('shows the end time for a warning that is already active', () => {
     show(entry([alert({ onset: '2026-10-28T12:00:00.000Z' })]));
     expect(screen.getByRole('group')).toHaveTextContent('bis 21:00 Uhr');

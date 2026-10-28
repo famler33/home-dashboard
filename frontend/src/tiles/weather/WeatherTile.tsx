@@ -5,7 +5,7 @@ import { useShell } from '../../shell/shell-context';
 import { effectiveAgeSeconds } from '../../snapshot/freshness';
 import { useSnapshot } from '../../snapshot/useSnapshot';
 import type { TileContentProps } from '../types';
-import { AlertBanner } from './AlertBanner';
+import { AlertBanner, hasActiveAlert } from './AlertBanner';
 import { Credits } from './Credits';
 import { DaysView } from './DaysView';
 import { classifyGesture } from './gestures';
@@ -62,7 +62,15 @@ function WeatherContent({ weather }: { weather: WeatherPayload }) {
   const render = (id: ViewId, mode: 'wall' | 'phone', active: boolean): ReactNode => {
     switch (id) {
       case 'now':
-        return <NowView weather={weather} rain={statement} layout={mode} timeZone={timeZone} />;
+        return (
+          <NowView
+            weather={weather}
+            rain={statement}
+            layout={mode}
+            timeZone={timeZone}
+            alertActive={hasActiveAlert(alerts, now)}
+          />
+        );
       case 'days':
         return <DaysView weather={weather} layout={mode} />;
       case 'rain':
@@ -191,7 +199,7 @@ function WallViews({
         })}
       </div>
       {viewIds[stage.current] === 'rain' ? null : <Credits variant="short" />}
-      <div className="absolute right-3 top-1 z-10">
+      <div className="absolute right-2 top-0 z-10">
         <ViewIndicators index={index} onSelect={rotation.goTo} />
       </div>
     </div>
