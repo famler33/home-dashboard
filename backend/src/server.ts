@@ -1,5 +1,6 @@
 import type { AddressInfo } from 'node:net';
 import { join } from 'node:path';
+import { gunzipSync } from 'node:zlib';
 import { buildApp } from './app.js';
 import { createBackupJob, registerBackup } from './backup/backup-job.js';
 import { createSnapshotStore } from './cache/snapshot-store.js';
@@ -10,6 +11,12 @@ import { createScheduler } from './scheduler/scheduler.js';
 import { createDemoSource } from './sources/demo-source.js';
 import { registerSources } from './sources/register-sources.js';
 import { createSourceRunner } from './sources/source-runner.js';
+import { createAlertsSource } from './sources/weather/alerts-source.js';
+import { createBasemapService } from './sources/weather/basemap.js';
+import { createWeatherSource } from './sources/weather/open-meteo-source.js';
+import { createRadarSource } from './sources/weather/radar-source.js';
+import { createRadarStore, type RadarStore } from './sources/weather/radar-store.js';
+import type { RadarDocument } from './sources/weather/types.js';
 import type { Source } from './sources/source.js';
 
 export interface RunningServer {
@@ -17,7 +24,20 @@ export interface RunningServer {
   stop(): Promise<void>;
 }
 
-export async function startServer(env: NodeJS.ProcessEnv): Promise<RunningServer> {
+export interface ServerOverrides {
+  fetchImpl?: typeof fetch;
+  now?: () => number;
+}
+
+function tilesOf(body: Buffer): { z: number; x: number; y: number }[] {
+  const doc = JSON.parse(gunzipSync(body).toString('utf8')) as RadarDocument;
+  return doc.map.tiles.map((tile) => ({ z: doc.map.zoom, ...tile }));
+}
+
+export async function startServer(
+  env: NodeJS.ProcessEnv,
+  overrides: ServerOverrides = {},
+): Promise<RunningServer> {
   const config = loadConfig(env);
   const dataDir = env['DATA_DIR'] ?? '/data';
   const backupDir = env['BACKUP_DIR'] ?? '/backup';
@@ -30,6 +50,36 @@ export async function startServer(env: NodeJS.ProcessEnv): Promise<RunningServer
   const store = createSnapshotStore(db);
   const sources: Source[] = config.settings.sources.demo.enabled ? [createDemoSource()] : [];
 
+  let weather:
+    { radarStore: RadarStore; basemap: ReturnType<typeof createBasemapService> } | undefined;
+  if (config.settings.sources.weather?.enabled !== false) {
+    const fetchImpl = overrides.fetchImpl ?? fetch;
+    const userAgent = `home-dashboard/${buildId}`;
+    const baseStore = createRadarStore(db);
+    const basemap = createBasemapService({ dir: join(dataDir, 'tiles'), fetchImpl, userAgent });
+    const stored = baseStore.load();
+    if (stored) basemap.setAllowed(tilesOf(stored.bodyGzip));
+    const radarStore: RadarStore = {
+      load: () => baseStore.load(),
+      save(doc, now) {
+        baseStore.save(doc, now);
+        basemap.setAllowed(doc.map.tiles.map((tile) => ({ z: doc.map.zoom, ...tile })));
+      },
+    };
+    const { location, timezone } = {
+      location: config.settings.location,
+      timezone: config.settings.timezone,
+    };
+    const now = overrides.now;
+    const nowOption = now ? { now } : {};
+    sources.push(
+      createWeatherSource({ location, timezone, fetchImpl, userAgent, ...nowOption }),
+      createRadarSource({ location, fetchImpl, userAgent, radarStore, ...nowOption }),
+      createAlertsSource({ location, fetchImpl, userAgent, ...nowOption }),
+    );
+    weather = { radarStore, basemap };
+  }
+
   const app = await buildApp({
     config,
     store,
@@ -37,6 +87,7 @@ export async function startServer(env: NodeJS.ProcessEnv): Promise<RunningServer
     sources,
     buildId,
     ...(staticDir !== undefined ? { staticDir } : {}),
+    ...(weather ? { weather } : {}),
   });
   for (const warning of config.warnings) app.log.warn(warning);
 

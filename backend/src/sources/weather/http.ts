@@ -20,7 +20,7 @@ function isAbort(error: unknown): error is Error {
   return error instanceof Error && (error.name === 'AbortError' || error.name === 'TimeoutError');
 }
 
-async function readLimited(response: Response, maxBytes: number): Promise<Uint8Array> {
+export async function readLimited(response: Response, maxBytes: number): Promise<Uint8Array> {
   const declared = Number(response.headers.get('content-length'));
   if (Number.isFinite(declared) && declared > maxBytes) throw new UpstreamError();
   if (!response.body) return new Uint8Array(await response.arrayBuffer());

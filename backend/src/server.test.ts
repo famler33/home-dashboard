@@ -2,7 +2,6 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync, chmodSync } from 'node:f
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { readFileSync } from 'node:fs';
-import { gunzipSync } from 'node:zlib';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { tinyPng } from '../test/helpers/png.js';
 import { ConfigError } from './config/load-config.js';
@@ -169,7 +168,8 @@ describe('startServer weather wiring', () => {
 
     const radar = await fetch(`${server.url}/api/v1/weather/radar`);
     expect(radar.status).toBe(200);
-    const doc = JSON.parse(gunzipSync(Buffer.from(await radar.arrayBuffer())).toString('utf8')) as {
+    // fetch decompresses the gzip body itself
+    const doc = (await radar.json()) as {
       map: { zoom: number; tiles: { x: number; y: number }[] };
     };
     const tile = doc.map.tiles[0]!;

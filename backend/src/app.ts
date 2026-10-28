@@ -9,6 +9,7 @@ import { registerErrorHandling } from './errors.js';
 import { redactPaths, type LogOptions } from './logging.js';
 import { healthRoute } from './routes/health.route.js';
 import { snapshotRoute } from './routes/snapshot.route.js';
+import { weatherRoutes, type WeatherDeps } from './routes/weather.route.js';
 import type { Source } from './sources/source.js';
 
 export interface AppDeps {
@@ -18,6 +19,7 @@ export interface AppDeps {
   sources: readonly Source[];
   buildId: string;
   staticDir?: string;
+  weather?: WeatherDeps;
   logger?: LogOptions;
 }
 
@@ -78,6 +80,8 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
       buildId: deps.buildId,
     }),
   );
+
+  if (deps.weather) await app.register(weatherRoutes(deps.weather));
 
   if (deps.staticDir !== undefined) {
     await app.register(fastifyStatic, {
