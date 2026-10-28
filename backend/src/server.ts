@@ -1,3 +1,8 @@
+import { calendarIds } from './config/schema.js';
+import type { Logger } from './logger.js';
+import { createCalendarSource } from './sources/calendar/calendar-source.js';
+import { createFeedTransport, type FeedTransport } from './sources/calendar/feed-transport.js';
+import { normaliseFeedUrl } from './sources/calendar/feed-url.js';
 import type { AddressInfo } from 'node:net';
 import { join } from 'node:path';
 import { gunzipSync } from 'node:zlib';
@@ -27,6 +32,7 @@ export interface RunningServer {
 export interface ServerOverrides {
   fetchImpl?: typeof fetch;
   now?: () => number;
+  calendarTransport?: FeedTransport;
 }
 
 function tilesOf(body: Buffer): { z: number; x: number; y: number }[] {
@@ -80,6 +86,30 @@ export async function startServer(
     weather = { radarStore, basemap };
   }
 
+  const loggerRef: { current?: Logger } = {};
+  const calendar = config.settings.sources.calendar;
+  if (calendar?.enabled) {
+    const transport = overrides.calendarTransport ?? createFeedTransport();
+    const userAgent = `home-dashboard/${buildId}`;
+    const lazyLogger = { warn: (obj: object, msg?: string) => loggerRef.current?.warn(obj, msg) };
+    for (const id of calendarIds) {
+      const entry = calendar.calendars[id];
+      if (!entry.enabled) continue;
+      sources.push(
+        createCalendarSource({
+          id: `calendar-${id}`,
+          url: normaliseFeedUrl(config.credentials[`calendar-${id}`]?.['url'] ?? ''),
+          timezone: config.settings.timezone,
+          selfAddresses: entry.selfAddresses ?? [],
+          transport,
+          userAgent,
+          ...(overrides.now ? { now: () => new Date(overrides.now!()) } : {}),
+          logger: lazyLogger,
+        }),
+      );
+    }
+  }
+
   const app = await buildApp({
     config,
     store,
@@ -89,6 +119,7 @@ export async function startServer(
     ...(staticDir !== undefined ? { staticDir } : {}),
     ...(weather ? { weather } : {}),
   });
+  loggerRef.current = app.log;
   for (const warning of config.warnings) app.log.warn(warning);
 
   const scheduler = createScheduler({

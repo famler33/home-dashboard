@@ -29,6 +29,23 @@ export const snapshotSchema = Type.Object({
       nightTo: Type.String(),
       dailyReloadAt: Type.String(),
     }),
+    calendar: Type.Optional(
+      Type.Object({
+        kitaKeyword: Type.String(),
+        calendars: Type.Array(
+          Type.Object({
+            id: Type.Union([
+              Type.Literal('family'),
+              Type.Literal('person-1'),
+              Type.Literal('person-2'),
+            ]),
+            name: Type.String(),
+            color: Type.String(),
+            role: Type.Union([Type.Literal('family'), Type.Literal('person')]),
+          }),
+        ),
+      }),
+    ),
   }),
   sources: Type.Array(sourceSnapshotSchema),
 });
