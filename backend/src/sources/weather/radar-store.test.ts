@@ -31,7 +31,7 @@ beforeEach(() => {
   store = createRadarStore(db);
 });
 
-// Covers: FR-7, FR-8, AC-16, AC-24
+// Covers: FR-7, FR-8, AC-16, AC-18, AC-19
 describe('radar document table', () => {
   it('is created by the migrations as a single-row table', () => {
     expect(db.pragma('user_version', { simple: true })).toBeGreaterThanOrEqual(2);

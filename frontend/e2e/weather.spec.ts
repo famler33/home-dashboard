@@ -14,7 +14,7 @@ test.beforeEach(async ({ page }) => {
   await page.clock.install({ time: weatherInstant });
 });
 
-// Covers: FR-9, AC-22, AC-23, AC-24, AC-44, AC-45, AC-46
+// Covers: FR-9, AC-22, AC-23, AC-24, AC-25, AC-44, AC-45, AC-46
 test.describe('weather views on the wall', () => {
   test('rotates through the three views with the fake clock', async ({ page }) => {
     await mockWeather(page);
