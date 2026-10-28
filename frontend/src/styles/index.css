@@ -57,7 +57,87 @@
     animation: ambient 90s ease-in-out infinite alternate;
   }
 
+  @keyframes symbol-glow {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.7;
+    }
+  }
+
+  @keyframes symbol-drift {
+    from {
+      transform: translateX(-2px);
+    }
+    to {
+      transform: translateX(3px);
+    }
+  }
+
+  @keyframes symbol-fall {
+    0%,
+    100% {
+      opacity: 0.55;
+      transform: translateY(0);
+    }
+    50% {
+      opacity: 1;
+      transform: translateY(2px);
+    }
+  }
+
+  @keyframes symbol-flash {
+    0%,
+    86%,
+    100% {
+      opacity: 1;
+    }
+    92% {
+      opacity: 0.35;
+    }
+  }
+
+  .symbol-sun {
+    animation: symbol-glow 8s ease-in-out infinite;
+  }
+
+  .symbol-moon {
+    animation: symbol-glow 10s ease-in-out infinite;
+  }
+
+  .symbol-cloud {
+    animation: symbol-drift 12s ease-in-out infinite alternate;
+  }
+
+  .symbol-drops {
+    animation: symbol-fall 6s ease-in-out infinite;
+  }
+
+  .symbol-flakes {
+    animation: symbol-fall 8s ease-in-out infinite;
+  }
+
+  .symbol-bolt {
+    animation: symbol-flash 9s linear infinite;
+  }
+
+  .symbol-fog {
+    animation: symbol-glow 10s ease-in-out infinite;
+  }
+
   @media (prefers-reduced-motion: reduce) {
+    .symbol-sun,
+    .symbol-moon,
+    .symbol-cloud,
+    .symbol-drops,
+    .symbol-flakes,
+    .symbol-bolt,
+    .symbol-fog {
+      animation: none;
+    }
+
     .animate-tile-in {
       animation: tile-fade 150ms linear both;
       animation-delay: 0ms;

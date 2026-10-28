@@ -63,7 +63,9 @@ describe('WeatherSymbol', () => {
 });
 
 describe('symbol motion styles', () => {
-  const symbolRules = [...css.matchAll(/\.(symbol-[a-z-]+)\s*\{([^}]*)\}/g)];
+  const symbolRules = [...css.matchAll(/\.(symbol-[a-z-]+)\s*\{([^}]*)\}/g)].filter(
+    ([, , body]) => !/animation:\s*none/.test(body ?? ''),
+  );
 
   it('defines the symbol animations', () => {
     expect(symbolRules.length).toBeGreaterThanOrEqual(4);
