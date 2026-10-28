@@ -1,0 +1,41 @@
+{
+  "_fixture": "synthetic: shape of the Bright Sky /alerts response; no real alert was active when recorded",
+  "alerts": [
+    {
+      "id": 1, "alert_id": "2.49.0.0.276.0.DWD.PVW.1.example.A", "status": "actual",
+      "effective": "2026-10-28T11:00:00+00:00", "onset": "2026-10-28T15:00:00+00:00", "expires": "2026-10-28T21:00:00+00:00",
+      "category": "met", "response_type": "prepare", "urgency": "immediate", "severity": "moderate", "certainty": "likely",
+      "event_code": 22, "event_en": "wind gusts", "event_de": "WINDBÖEN",
+      "headline_en": "Official WARNING of WIND GUSTS", "headline_de": "Amtliche WARNUNG vor WINDBÖEN"
+    },
+    {
+      "id": 2, "alert_id": "2.49.0.0.276.0.DWD.PVW.2.example.A", "status": "actual",
+      "effective": "2026-10-28T11:00:00+00:00", "onset": "2026-10-28T16:00:00+00:00", "expires": "2026-10-28T20:00:00+00:00",
+      "category": "met", "response_type": "prepare", "urgency": "immediate", "severity": "severe", "certainty": "likely",
+      "event_code": 51, "event_en": "thunderstorm", "event_de": "GEWITTER",
+      "headline_en": "Official WARNING of THUNDERSTORM", "headline_de": "Amtliche WARNUNG vor GEWITTER"
+    },
+    {
+      "id": 3, "alert_id": "2.49.0.0.276.0.DWD.PVW.3.example.A", "status": "actual",
+      "effective": "2026-10-27T11:00:00+00:00", "onset": "2026-10-27T12:00:00+00:00", "expires": "2026-10-28T09:00:00+00:00",
+      "category": "met", "response_type": "prepare", "urgency": "immediate", "severity": "minor", "certainty": "likely",
+      "event_code": 61, "event_en": "frost", "event_de": "FROST",
+      "headline_en": "Official WARNING of FROST", "headline_de": "Amtliche WARNUNG vor FROST"
+    },
+    {
+      "id": 4, "alert_id": "2.49.0.0.276.0.DWD.PVW.4.example.A", "status": "test",
+      "effective": "2026-10-28T11:00:00+00:00", "onset": "2026-10-28T15:00:00+00:00", "expires": "2026-10-28T21:00:00+00:00",
+      "category": "met", "response_type": "prepare", "urgency": "immediate", "severity": "extreme", "certainty": "likely",
+      "event_code": 99, "event_en": "test", "event_de": "TEST",
+      "headline_en": "Test", "headline_de": "Test"
+    },
+    {
+      "id": 5, "alert_id": "2.49.0.0.276.0.DWD.PVW.5.example.A", "status": "actual",
+      "effective": "2026-10-28T11:00:00+00:00", "onset": "2026-10-28T15:00:00+00:00", "expires": "2026-10-28T21:00:00+00:00",
+      "category": "met", "response_type": "prepare", "urgency": "immediate", "severity": "unknown-level", "certainty": "likely",
+      "event_code": 12, "event_en": "heavy rain", "event_de": "STARKREGEN",
+      "headline_en": "Official WARNING", "headline_de": "Amtliche WARNUNG"
+    }
+  ],
+  "location": { "warn_cell_id": 711000101, "name": "Berl. - Mitte", "name_short": "B.-Mitte", "district": "Berlin", "state": "Berlin", "state_short": "BE" }
+}
