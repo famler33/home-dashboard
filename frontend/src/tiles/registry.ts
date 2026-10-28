@@ -1,5 +1,7 @@
 import type { Snapshot } from '../api/types';
 import { DemoTile } from './demo/DemoTile';
+import { isWeatherPayload } from './weather/types';
+import { WeatherTile } from './weather/WeatherTile';
 import { PlaceholderTile } from './PlaceholderTile';
 import type { TileDefinition } from './types';
 
@@ -24,6 +26,26 @@ export const tileRegistry: readonly TileDefinition[] = [
     tablet: { col: 1, row: 1, colSpan: 5, rowSpan: 3 },
     phoneOrder: 2,
     Component: PlaceholderTile,
+  },
+  {
+    id: 'weather-live',
+    titleKey: 'tiles.weather',
+    sourceId: 'weather',
+    requiresSource: true,
+    replaces: 'weather',
+    tablet: { col: 1, row: 1, colSpan: 5, rowSpan: 3 },
+    phoneOrder: 2,
+    heading: (data, t) =>
+      isWeatherPayload(data) ? t('weather.heading', { location: data.location.name }) : null,
+    stateTexts: {
+      'never-loaded': {
+        titleKey: 'weather.states.neverLoaded.title',
+        hintKey: 'weather.states.neverLoaded.hint',
+      },
+      error: { titleKey: 'weather.states.error.title', hintKey: 'weather.states.error.hint' },
+    },
+    isEmpty: (data) => !isWeatherPayload(data),
+    Component: WeatherTile,
   },
   {
     id: 'news',

@@ -99,6 +99,33 @@
     }
   }
 
+  @keyframes view-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes view-out {
+    from {
+      opacity: 1;
+    }
+    to {
+      opacity: 0;
+    }
+  }
+
+  .view-enter {
+    animation: view-in 600ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .view-exit {
+    animation: view-out 600ms ease both;
+    pointer-events: none;
+  }
+
   .symbol-sun {
     animation: symbol-glow 8s ease-in-out infinite;
   }
@@ -136,6 +163,11 @@
     .symbol-bolt,
     .symbol-fog {
       animation: none;
+    }
+
+    .view-enter,
+    .view-exit {
+      animation-duration: 150ms;
     }
 
     .animate-tile-in {

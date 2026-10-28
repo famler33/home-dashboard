@@ -17,7 +17,10 @@ export function weatherSource(id: 'weather' | 'weather-radar' | 'weather-alerts'
 }
 
 export function weatherSnapshot(overrides: { sources?: SourceSnapshot[] } = {}): Snapshot {
-  return snapshotFixture({ sources: overrides.sources ?? weatherSources() });
+  return snapshotFixture({
+    serverTime: new Date(weatherNow).toISOString(),
+    sources: overrides.sources ?? weatherSources(),
+  });
 }
 
 const SIZE = 101;
