@@ -174,3 +174,91 @@ describe('loadConfig credentials', () => {
     expect(message).not.toContain('S3CR3T-TEST');
   });
 });
+
+const calendarBlock = `
+  calendar:
+    enabled: true
+    kitaKeyword: Kita
+    calendars:
+      family:
+        enabled: true
+        name: Familie
+        color: blue
+      person-1:
+        enabled: false
+        name: Alex
+        color: green
+        selfAddresses: [alex@example.com]
+      person-2:
+        enabled: false
+        name: Ben
+        color: orange
+`;
+const withCalendar = validSettings.replace('sources:\n', `sources:\n${calendarBlock.slice(1)}`);
+const goodUrl = 'webcal://p12-caldav.icloud.com/published/2/SECRET-TOKEN';
+
+// Covers: FR-9, AC-15, AC-26, AC-30, AC-34
+describe('loadConfig calendar settings', () => {
+  it('accepts the calendar block and requires a feed url only for enabled calendars', () => {
+    write('settings.yaml', withCalendar);
+    write('credentials.yaml', `calendar-family:\n  url: ${goodUrl}\n`);
+    const config = load();
+    expect(config.settings.sources.calendar?.calendars.family.name).toBe('Familie');
+  });
+
+  it('fails naming credentials.yaml and the key when an enabled calendar has no url', () => {
+    write('settings.yaml', withCalendar);
+    expect(() => load()).toThrowError(/credentials\.yaml: calendar-family\.url/);
+  });
+
+  it('fails naming the key but never the value for a url outside the allow-list', () => {
+    write('settings.yaml', withCalendar);
+    write('credentials.yaml', 'calendar-family:\n  url: https://example.org/SECRET-TOKEN\n');
+    try {
+      load();
+      expect.unreachable();
+    } catch (error) {
+      expect((error as Error).message).toContain('calendar-family.url');
+      expect((error as Error).message).not.toContain('SECRET-TOKEN');
+      expect((error as Error).message).not.toContain('example.org');
+    }
+  });
+
+  it('does not check urls of disabled calendars or of a disabled tile', () => {
+    write(
+      'settings.yaml',
+      withCalendar.replace('enabled: true\n    kita', 'enabled: false\n    kita'),
+    );
+    expect(() => load()).not.toThrow();
+  });
+
+  it('rejects an unknown colour and an empty name naming the key', () => {
+    write('settings.yaml', withCalendar.replace('color: blue', 'color: pink'));
+    expect(() => load()).toThrowError(/sources\.calendar\.calendars\.family\.color/);
+    write('settings.yaml', withCalendar.replace('name: Familie', 'name: ""'));
+    expect(() => load()).toThrowError(/sources\.calendar\.calendars\.family\.name/);
+  });
+
+  it('validates kitaKeyword between 1 and 30 characters', () => {
+    write('settings.yaml', withCalendar.replace('kitaKeyword: Kita', 'kitaKeyword: ""'));
+    expect(() => load()).toThrowError(/kitaKeyword/);
+  });
+
+  it('projects name, colour and role of enabled calendars and nothing else', () => {
+    write('settings.yaml', withCalendar);
+    write('credentials.yaml', `calendar-family:\n  url: ${goodUrl}\n`);
+    const projected = projectSettings(load().settings);
+    expect(projected.calendar).toEqual({
+      kitaKeyword: 'Kita',
+      calendars: [{ id: 'family', name: 'Familie', color: 'blue', role: 'family' }],
+    });
+    const text = JSON.stringify(projected);
+    expect(text).not.toContain('SECRET-TOKEN');
+    expect(text).not.toContain('alex@example.com');
+  });
+
+  it('projects no calendar block when the tile is off or absent', () => {
+    write('settings.yaml', validSettings);
+    expect(projectSettings(load().settings).calendar).toBeUndefined();
+  });
+});
