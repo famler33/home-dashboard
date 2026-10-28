@@ -15,7 +15,7 @@ export function DemoTile({ data }: TileContentProps) {
   return (
     <div className="flex h-full items-center justify-center gap-6">
       <p className="text-caption text-ink-muted">{t('demo.value')}</p>
-      <p className="text-display tabular-nums">{value ?? ''}</p>
+      <p className="text-display tabular-nums tablet-short:text-title">{value ?? ''}</p>
     </div>
   );
 }
