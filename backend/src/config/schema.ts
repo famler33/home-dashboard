@@ -2,6 +2,23 @@ import { Type, type Static } from '@sinclair/typebox';
 
 const hhmm = Type.String({ pattern: '^([01]\\d|2[0-3]):[0-5]\\d$' });
 
+export const calendarColors = ['blue', 'green', 'orange', 'purple', 'teal', 'rose'] as const;
+export type CalendarColor = (typeof calendarColors)[number];
+export const calendarIds = ['family', 'person-1', 'person-2'] as const;
+export type CalendarId = (typeof calendarIds)[number];
+
+const calendarSetting = Type.Object(
+  {
+    enabled: Type.Boolean(),
+    name: Type.String({ minLength: 1, maxLength: 20 }),
+    color: Type.Union(calendarColors.map((color) => Type.Literal(color))),
+    selfAddresses: Type.Optional(
+      Type.Array(Type.String({ pattern: '^[^@\\s]+@[^@\\s]+$' }), { maxItems: 5 }),
+    ),
+  },
+  { additionalProperties: false },
+);
+
 export const settingsSchema = Type.Object(
   {
     timezone: Type.String({ minLength: 1 }),
@@ -22,6 +39,23 @@ export const settingsSchema = Type.Object(
         demo: Type.Object({ enabled: Type.Boolean() }, { additionalProperties: false }),
         weather: Type.Optional(
           Type.Object({ enabled: Type.Boolean() }, { additionalProperties: false }),
+        ),
+        calendar: Type.Optional(
+          Type.Object(
+            {
+              enabled: Type.Boolean(),
+              kitaKeyword: Type.String({ minLength: 1, maxLength: 30 }),
+              calendars: Type.Object(
+                {
+                  family: calendarSetting,
+                  'person-1': calendarSetting,
+                  'person-2': calendarSetting,
+                },
+                { additionalProperties: false },
+              ),
+            },
+            { additionalProperties: false },
+          ),
         ),
       },
       { additionalProperties: false },
@@ -46,4 +80,13 @@ export type Credentials = Readonly<Record<string, Readonly<Record<string, string
 export interface SnapshotSettings {
   timezone: string;
   display: { nightFrom: string; nightTo: string; dailyReloadAt: string };
+  calendar?: {
+    kitaKeyword: string;
+    calendars: {
+      id: CalendarId;
+      name: string;
+      color: CalendarColor;
+      role: 'family' | 'person';
+    }[];
+  };
 }

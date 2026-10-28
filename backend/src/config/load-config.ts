@@ -10,6 +10,8 @@ import {
   type Settings,
   type SnapshotSettings,
 } from './schema.js';
+import { calendarIds } from './schema.js';
+import { FeedRejected, normaliseFeedUrl } from '../sources/calendar/feed-url.js';
 
 export type { Credentials, Settings, SnapshotSettings } from './schema.js';
 
@@ -108,11 +110,37 @@ export function loadConfig(env: NodeJS.ProcessEnv, files: FileReader = nodeFiles
     }
   }
 
+  assertCalendarFeeds(settings, credentials);
+
   return { settings, credentials, warnings };
 }
 
+/** Enabled calendars need a valid feed address; errors name the file and key, never the value. */
+function assertCalendarFeeds(settings: Settings, credentials: Credentials): void {
+  const calendar = settings.sources.calendar;
+  if (!calendar || !calendar.enabled) return;
+  for (const id of calendarIds) {
+    if (!calendar.calendars[id].enabled) continue;
+    const key = `calendar-${id}`;
+    const url = credentials[key]?.['url'];
+    if (url === undefined) {
+      throw new ConfigError(`credentials.yaml: ${key}.url: is required for an enabled calendar`);
+    }
+    try {
+      normaliseFeedUrl(url);
+    } catch (error) {
+      if (error instanceof FeedRejected) {
+        throw new ConfigError(
+          `credentials.yaml: ${key}.url: is not an allowed https calendar address`,
+        );
+      }
+      throw error;
+    }
+  }
+}
+
 export function projectSettings(settings: Settings): SnapshotSettings {
-  return {
+  const projected: SnapshotSettings = {
     timezone: settings.timezone,
     display: {
       nightFrom: settings.display.nightFrom,
@@ -120,4 +148,24 @@ export function projectSettings(settings: Settings): SnapshotSettings {
       dailyReloadAt: settings.display.dailyReloadAt,
     },
   };
+  const calendar = settings.sources.calendar;
+  if (calendar?.enabled) {
+    projected.calendar = {
+      kitaKeyword: calendar.kitaKeyword,
+      calendars: calendarIds.flatMap((id) => {
+        const entry = calendar.calendars[id];
+        return entry.enabled
+          ? [
+              {
+                id,
+                name: entry.name,
+                color: entry.color,
+                role: id === 'family' ? ('family' as const) : ('person' as const),
+              },
+            ]
+          : [];
+      }),
+    };
+  }
+  return projected;
 }

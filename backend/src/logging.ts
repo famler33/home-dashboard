@@ -5,6 +5,8 @@ export const redactPaths: string[] = [
   '*.password',
   '*.token',
   '*.apiKey',
+  '*.feedUrl',
+  '*.calendarUrl',
 ];
 
 export interface LogOptions {
