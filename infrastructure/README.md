@@ -126,6 +126,32 @@ Wiederherstellen:
 3. Daneben liegende Dateien `data/dashboard.sqlite-wal` und `data/dashboard.sqlite-shm` löschen.
 4. Projekt wieder starten und `http://dashboard.home` prüfen.
 
+## Wetter
+
+Die Wetter-Kachel braucht keinen Schlüssel und kein Konto. Sie holt offene Daten, ausgehend per HTTPS:
+
+| Teil | Dienst (Host) | Takt |
+| ---- | ------------- | ---- |
+| Vorhersage (jetzt, Stunden, 7 Tage) | Open-Meteo (`api.open-meteo.com`) | alle 15 Min. |
+| Regenradar (DWD) | Bright Sky (`api.brightsky.dev`) | alle 5 Min. |
+| Unwetterwarnungen (DWD) | Bright Sky (`api.brightsky.dev`) | alle 15 Min. |
+| Kartenhintergrund des Radars | OpenStreetMap-Kacheln (`tile.openstreetmap.org`), über das Dashboard geladen | nur bei Bedarf |
+
+- **Datenschutz:** Der Standort aus `settings.yaml` wird vor jedem Abruf auf zwei Nachkommastellen (ca. 1 km)
+  gerundet. Das Tablet und das Handy sprechen nie selbst mit diesen Diensten, nur mit dem Dashboard.
+- **Kartenkacheln:** Das Dashboard legt die Kacheln unter `data/tiles` ab (höchstens 64 Dateien, 8 MiB). Der
+  Ordner darf jederzeit gelöscht werden; er füllt sich von selbst wieder.
+- **Ausschalten:** `sources.weather.enabled: false` in `settings.yaml` schaltet Vorhersage, Radar und Warnungen
+  gemeinsam ab (Container neu starten).
+- **Quellenangaben:** Die Kachel nennt ihre Quellen (Open-Meteo.com, Deutscher Wetterdienst über Bright Sky,
+  OpenStreetMap-Mitwirkende). Diese Angaben nicht entfernen.
+- **Dienste prüfen:** Im Ordner `backend/` zeigt `node scripts/weather-live-check.mjs <Pfad zur settings.yaml>`,
+  ob die Dienste erreichbar sind und noch die erwartete Form liefern. Es gibt nur Formen und Anzahlen aus,
+  keine Daten und keine Koordinaten, und gehört zu keinem Testlauf.
+- **Störungen:** Fällt ein Teil aus, bleibt der Rest nutzbar. Ein veraltetes Radar bleibt als letztes Bild mit
+  „Radar veraltet“ und Alter sichtbar; die Kachel zeigt nie einen leeren Fehler.
+- **Netzwerk:** Die Firewall des NAS muss ausgehendes HTTPS zu diesen drei Hosts erlauben.
+
 ## Tablet einrichten
 
 Das Dashboard läuft im Querformat im Browser im Vollbild. Für den Dauerbetrieb am Tablet:
