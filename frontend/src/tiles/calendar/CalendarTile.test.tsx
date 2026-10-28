@@ -230,11 +230,23 @@ describe('CalendarTile tabs, legend and states', () => {
     expect(tab('Alex')).toHaveAttribute('aria-selected', 'true');
   });
 
-  it('lists every enabled calendar with colour and name in the Alle view', () => {
+  it('names every enabled calendar with its colour on the tabs of the Alle view', () => {
     show();
-    const legend = screen.getByTestId('legend');
-    for (const name of ['Familie', 'Alex', 'Ben'])
-      expect(within(legend).getByText(name)).toBeInTheDocument();
+    const dots = screen.getAllByRole('tab').map((node) => within(node).queryByTestId('tab-dot'));
+    expect(dots[0]).toBeNull();
+    expect(dots[1]!.className).toContain('bg-cal-blue');
+    expect(dots[2]!.className).toContain('bg-cal-green');
+    expect(dots[3]!.className).toContain('bg-cal-orange');
+    expect(screen.queryByTestId('legend')).toBeNull();
+  });
+
+  it('lists the calendar with colour and name in a legend when there are no tabs', () => {
+    const only: CalendarSettings = {
+      ...settingsFixture,
+      calendars: [settingsFixture.calendars[0]!],
+    };
+    show([entry('calendar-family', familyEvents)], 'tablet', only);
+    expect(within(screen.getByTestId('legend')).getByText('Familie')).toBeInTheDocument();
   });
 
   it('marks a stale calendar on its legend chip with Veraltet and its age and keeps its rows', () => {

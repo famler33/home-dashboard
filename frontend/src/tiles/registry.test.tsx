@@ -94,6 +94,16 @@ describe('tile registry', () => {
 });
 
 // Covers: FR-1, FR-17, AC-41 (weather gets the taller left cell)
+describe('calendar tile area', () => {
+  it('gives the live calendar tile and its placeholder four rows and the news tile the remaining two', () => {
+    const area = (id: string) => tileRegistry.find((tile) => tile.id === id)!.tablet;
+    expect(area('calendar')).toMatchObject({ col: 6, row: 1, colSpan: 7, rowSpan: 4 });
+    expect(area('calendar-live')).toEqual(area('calendar'));
+    expect(area('news')).toMatchObject({ col: 6, row: 5, colSpan: 7, rowSpan: 2 });
+    expect(area('demo')).toEqual(area('news'));
+  });
+});
+
 describe('weather tile area', () => {
   it('gives the live weather tile and its placeholder four rows and the lists tile the remaining two', () => {
     const area = (id: string) => tileRegistry.find((tile) => tile.id === id)!.tablet;

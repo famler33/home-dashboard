@@ -34,11 +34,9 @@ function problemOf(
 export function CalendarView({ snapshot, now, layout, tab, budget }: Props) {
   const { t, i18n } = useTranslation();
   const wall = layout === 'tablet';
-  const {
-    bodyRef,
-    probeRef,
-    budget: measuredBudget,
-  } = useFittingRows(wall && budget === undefined);
+  const { bodyRef, headRef, bodyRowRef, captionRef, metrics } = useFittingRows(
+    wall && budget === undefined,
+  );
   const settings = snapshot.settings.calendar;
   if (!settings || !isCalendarSettings(settings)) return null;
 
@@ -50,16 +48,29 @@ export function CalendarView({ snapshot, now, layout, tab, budget }: Props) {
     keyword: settings.kitaKeyword,
     tab,
   });
+  const emphasis = tab === 'all';
   const noEvents = kita.length === 0 && days.every((group) => group.items.length === 0);
-  const effectiveBudget = budget === undefined ? measuredBudget : budget;
+  // Without a budget prop the body is measured (pixels); a budget prop counts uniform rows.
+  const unit = { head: 1, body: 1, caption: 1 };
+  const heights = budget === undefined ? (metrics ?? null) : unit;
+  const effectiveBudget = budget === undefined ? (metrics?.budget ?? null) : budget;
+  const rowHeight = (item: DayItem): number =>
+    heights === null
+      ? 0
+      : !emphasis || item.event.role === 'family'
+        ? heights.body
+        : heights.caption;
   const fit: FitResult | null =
-    wall && effectiveBudget !== null
+    wall && effectiveBudget !== null && heights !== null
       ? fitRows(
           {
-            kita: kita.length,
+            kita: kita.map(() => heights.body),
+            kitaHead: heights.head + (budget === undefined ? 8 : 0),
+            more: heights.caption,
             days: days.map((group) => ({
               date: group.date,
-              rows: Math.max(1, group.items.length),
+              head: heights.head,
+              rows: group.items.length === 0 ? [heights.body] : group.items.map(rowHeight),
               isToday: group.kind === 'today',
             })),
           },
@@ -81,7 +92,6 @@ export function CalendarView({ snapshot, now, layout, tab, budget }: Props) {
       ? withProblems
       : withProblems.filter((entry) => entry.info.id === tab && entry.problem);
   const activeName = settings.calendars.find((info) => info.id === tab)?.name ?? '';
-  const emphasis = tab === 'all';
 
   const row = (event: TaggedEvent, part: DayItem['part'], key: string, testId = 'event-row') => {
     const strong = !emphasis || event.role === 'family';
@@ -133,12 +143,16 @@ export function CalendarView({ snapshot, now, layout, tab, budget }: Props) {
     <div className="flex min-h-0 flex-1 flex-col gap-2">
       <Legend calendars={legendEntries} />
       <div ref={bodyRef} className="relative min-h-0 flex-1 overflow-hidden">
-        <div
-          aria-hidden="true"
-          ref={probeRef}
-          className="invisible absolute inset-x-0 top-0 -z-10 py-1 text-body"
-        >
-          {'M'}
+        <div aria-hidden="true" className="invisible absolute inset-x-0 top-0 -z-10">
+          <div ref={headRef} className="text-caption font-semibold">
+            {'M'}
+          </div>
+          <div ref={bodyRowRef} className="text-body font-semibold">
+            {'M'}
+          </div>
+          <div ref={captionRef} className="text-caption">
+            {'M'}
+          </div>
         </div>
         <div key={tab} data-testid="agenda-body" className="view-enter flex flex-col gap-1">
           {noEvents ? (
