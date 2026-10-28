@@ -70,7 +70,7 @@ export async function tileFitProblems(page: Page): Promise<string[]> {
         }
       }
       for (const element of Array.from(section.querySelectorAll('*'))) {
-        if (element.closest('.sr-only') || element.closest('h2')) continue;
+        if (element.closest('.sr-only, [class*="sr-only"]') || element.closest('h2')) continue;
         const r = element.getBoundingClientRect();
         if (r.width === 0 || r.height === 0) continue;
         if (

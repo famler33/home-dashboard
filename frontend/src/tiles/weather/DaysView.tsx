@@ -43,7 +43,9 @@ export function DaysView({
           </span>
           {day.precipProbability >= SHOW_PROBABILITY_FROM && (
             <span className="text-accent">
-              {t('weather.probability', { value: Math.round(day.precipProbability) })}
+              {t(wall ? 'weather.probabilityCompact' : 'weather.probability', {
+                value: Math.round(day.precipProbability),
+              })}
             </span>
           )}
         </li>

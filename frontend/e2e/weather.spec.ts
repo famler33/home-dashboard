@@ -133,7 +133,10 @@ test.describe('weather content', () => {
     const tall = await page.getByTestId('hour-slot').first().locator('svg').boundingBox();
     expect(tall!.width).toBeGreaterThan(10);
     await page.setViewportSize({ width: 1280, height: 800 });
-    const wrapper = page.getByTestId('hour-slot').first().locator('[class*="tablet-short:sr-only"]');
+    const wrapper = page
+      .getByTestId('hour-slot')
+      .first()
+      .locator('[class*="tablet-short:sr-only"]');
     expect((await wrapper.boundingBox())?.width ?? 0).toBeLessThanOrEqual(2);
   });
 
@@ -243,19 +246,25 @@ for (const size of sizes) {
   test.describe(`fit at ${size.width}x${size.height}`, () => {
     test.use({ viewport: size });
 
-    test('keeps every view and the warning banner inside the weather card', async ({ page }) => {
-      await mockWeather(page, { alerts: [alert] });
-      await page.goto('/');
-      for (const view of ['Jetzt', '7 Tage', 'Regen und Radar'] as const) {
-        await goToView(page, view);
-        await page.clock.runFor(1_500); // finish the fade and let the radar draw
-        await page.screenshot({
-          path: `${screenshotDir}/weather-${size.width}x${size.height}-${view.replace(/ /g, '-')}.png`,
-        });
-        const problems = await tileFitProblems(page);
-        expect(problems, `${view}: ${problems.join(' | ')}`).toEqual([]);
-      }
-    });
+    for (const withAlert of [true, false]) {
+      test(`keeps every view inside the weather card ${withAlert ? 'with' : 'without'} a warning`, async ({
+        page,
+      }) => {
+        await mockWeather(page, withAlert ? { alerts: [alert] } : { alerts: [] });
+        await page.goto('/');
+        await page.waitForTimeout(1_300); // tile entrance animation runs in real time
+        for (const view of ['Jetzt', '7 Tage', 'Regen und Radar'] as const) {
+          await goToView(page, view);
+          await page.clock.runFor(1_500); // finish the fade and let the radar draw
+          await page.waitForTimeout(700); // CSS fade runs in real time
+          await page.screenshot({
+            path: `${screenshotDir}/weather-${size.width}x${size.height}-${view.replace(/ /g, '-')}${withAlert ? '-warn' : ''}.png`,
+          });
+          const problems = await tileFitProblems(page);
+          expect(problems, `${view}: ${problems.join(' | ')}`).toEqual([]);
+        }
+      });
+    }
 
     test('has no weather text below 28px', async ({ page }) => {
       await mockWeather(page, { alerts: [alert] });
@@ -284,14 +293,12 @@ test.describe('symbol motion', () => {
   }) => {
     await mockWeather(page);
     await page.goto('/');
-    const names = await page
-      .locator('[class*="symbol-"]')
-      .evaluateAll((nodes) =>
-        nodes.map((node) => ({
-          name: getComputedStyle(node).animationName,
-          duration: getComputedStyle(node).animationDuration,
-        })),
-      );
+    const names = await page.locator('[class*="symbol-"]').evaluateAll((nodes) =>
+      nodes.map((node) => ({
+        name: getComputedStyle(node).animationName,
+        duration: getComputedStyle(node).animationDuration,
+      })),
+    );
     expect(names.length).toBeGreaterThan(0);
     for (const { name, duration } of names) {
       expect(name).toMatch(/^symbol-/);

@@ -54,7 +54,7 @@ export function TileFrame({
       aria-labelledby={headingId}
       data-status={status}
       style={{ '--i': index } as CSSProperties}
-      className="animate-tile-in relative flex h-full min-h-0 flex-col gap-3 overflow-hidden rounded-3xl bg-surface-raised p-5 shadow-sm tablet-short:gap-2 tablet-short:p-4"
+      className="animate-tile-in relative flex h-full min-h-0 flex-col gap-3 overflow-hidden rounded-3xl bg-surface-raised p-5 shadow-sm tablet-short:gap-2 tablet-short:p-3"
     >
       <h2 id={headingId} className="self-start text-caption font-medium text-ink-muted">
         {title}

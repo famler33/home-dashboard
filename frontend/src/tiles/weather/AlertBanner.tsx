@@ -65,20 +65,21 @@ export function AlertBanner({ alerts, weatherLoaded, now, timeZone }: Props) {
     <div
       role="group"
       aria-label={t('weather.alerts.label')}
-      className={`flex items-center gap-3 rounded-2xl border-l-8 bg-surface px-3 py-1 text-caption ${severe ? 'border-danger' : 'border-warn'}`}
+      className={`flex items-center gap-2 rounded-2xl border-l-8 bg-surface px-3 py-1 text-caption ${severe ? 'border-danger' : 'border-warn'}`}
     >
       <Icon
         aria-hidden="true"
         data-level={first.severity}
         className={`h-[1.3em] w-[1.3em] shrink-0 ${severe ? 'text-danger' : 'text-warn'}`}
       />
-      <p className="min-w-0 leading-tight">
-        <span className="font-medium">{`${t(`weather.alerts.level.${first.severity}`)} · ${first.type}`}</span>
-        <span className="text-ink-muted">{` ${window}`}</span>
-        {active.length > 1 && (
-          <span className="text-ink-muted">{` ${t('weather.alerts.more', { count: active.length - 1 })}`}</span>
-        )}
-      </p>
+      <div className="min-w-0 leading-tight">
+        <p data-testid="alert-line" className="font-medium">{`${first.type} · ${window}`}</p>
+        <p data-testid="alert-line" className="text-ink-muted">
+          {active.length > 1
+            ? `${t(`weather.alerts.level.${first.severity}`)} · ${t('weather.alerts.more', { count: active.length - 1 })}`
+            : t(`weather.alerts.level.${first.severity}`)}
+        </p>
+      </div>
     </div>
   );
 }

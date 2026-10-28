@@ -33,10 +33,17 @@ export function Clock({ timeZone, compact = false }: Props) {
     year: 'numeric',
     ...(timeZone ? { timeZone } : {}),
   }).format(instant);
+  const dateShort = new Intl.DateTimeFormat(locale, {
+    weekday: 'short',
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    ...(timeZone ? { timeZone } : {}),
+  }).format(instant);
 
   return (
     <LazyMotion features={domAnimation} strict>
-      <div className="flex flex-col gap-1">
+      <div className="flex flex-col gap-1 tablet-short:flex-row tablet-short:items-end tablet-short:gap-4">
         <time
           dateTime={instant.toISOString()}
           aria-label={t('clock.ariaLabel', { time })}
@@ -52,7 +59,12 @@ export function Clock({ timeZone, compact = false }: Props) {
             ),
           )}
         </time>
-        <p className="text-title text-ink-muted">{date}</p>
+        <p className="text-title text-ink-muted">
+          <span className="tablet-short:hidden">{date}</span>
+          <span aria-hidden="true" className="hidden tablet-short:inline">
+            {dateShort}
+          </span>
+        </p>
       </div>
     </LazyMotion>
   );

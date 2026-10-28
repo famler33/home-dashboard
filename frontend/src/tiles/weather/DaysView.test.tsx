@@ -33,7 +33,14 @@ describe('DaysView', () => {
     renderWithProviders(<DaysView weather={data} layout="wall" />);
     const days = screen.getAllByTestId('day');
     expect(within(days[2]!).queryByText(/%/)).toBeNull();
-    expect(within(days[3]!).getByText('20 %')).toBeInTheDocument();
+    expect(within(days[3]!).getByText('20%')).toBeInTheDocument();
+  });
+
+  it('writes the probability with a space on the phone', () => {
+    const data = weather();
+    data.daily[3] = { ...data.daily[3]!, precipProbability: 20 };
+    renderWithProviders(<DaysView weather={data} layout="phone" />);
+    expect(within(screen.getAllByTestId('day')[3]!).getByText('20 %')).toBeInTheDocument();
   });
 
   it('keeps the day symbols as screen-reader text in the compact variant', () => {

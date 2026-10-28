@@ -30,9 +30,9 @@ export function NowView({ weather, rain, layout, timeZone, alertActive = false }
   const slots = weather.hourly.slice(0, wall ? 5 : 24);
 
   return (
-    <div className="flex h-full min-h-0 flex-col justify-between gap-2">
+    <div className="flex h-full min-h-0 flex-col justify-between gap-1">
       <div className="flex min-h-0 flex-col gap-1">
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
           <WeatherSymbol
             condition={current.condition}
             isDay={current.isDay}
@@ -40,11 +40,9 @@ export function NowView({ weather, rain, layout, timeZone, alertActive = false }
             className="h-[1.25em] w-[1.25em] shrink-0 text-display"
           />
           <p className="text-display tabular-nums">{`${roundTemperature(current.temperature)}°`}</p>
-          <div className="flex min-w-0 flex-col">
-            <p className="text-title tablet-short:text-body">{label}</p>
-            <p className="text-caption text-ink-muted">{dayLine}</p>
-          </div>
+          <p className="min-w-0 text-title tablet-short:text-body">{label}</p>
         </div>
+        <p className="text-caption text-ink-muted">{dayLine}</p>
         {showWind && (
           <p className="text-caption text-ink-muted">
             {t('weather.wind', {
@@ -54,8 +52,16 @@ export function NowView({ weather, rain, layout, timeZone, alertActive = false }
           </p>
         )}
         {rain && (
-          <p data-testid="rain-line" className="text-caption text-accent">
-            {rainText(t, timeZone, rain)}
+          <p
+            data-testid="rain-line"
+            className={`text-caption text-accent ${wall && alertActive ? 'tablet-short:hidden' : ''}`}
+          >
+            <span className={wall ? 'tablet-short:hidden' : ''}>{rainText(t, timeZone, rain)}</span>
+            {wall && (
+              <span aria-hidden="true" className="hidden tablet-short:inline">
+                {rainText(t, timeZone, rain, true)}
+              </span>
+            )}
           </p>
         )}
       </div>
