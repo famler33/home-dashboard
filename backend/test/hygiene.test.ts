@@ -148,8 +148,7 @@ describe('deploy script', () => {
     expect(output).toContain('docker build --platform linux/amd64');
     expect(output).toContain('docker save');
     expect(output).toContain('docker load');
-    expect(output).toContain('docker compose');
-    expect(output).toContain('up -d');
+    expect(output).toMatch(/compose up -d/);
     expect(output).toContain('ssh');
   });
 

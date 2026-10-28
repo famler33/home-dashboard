@@ -1,0 +1,36 @@
+# Copy to <config folder>/settings.yaml on the NAS and adjust. Changes apply after a restart.
+
+# IANA time zone of the household; day/night times and the daily backup use it.
+timezone: Europe/Berlin
+
+# Home location (used by later tiles such as weather). It never leaves the NAS.
+location:
+  # Display name of the place.
+  name: Zuhause
+  # Degrees north, -90 to 90.
+  latitude: 52.52
+  # Degrees east, -180 to 180.
+  longitude: 13.405
+
+# Day and night appearance of the wall display.
+display:
+  # The dimmed night appearance starts at this local time (HH:MM, 24 h).
+  nightFrom: "22:00"
+  # ... and ends at this local time.
+  nightTo: "06:30"
+  # Once a day the open display reloads itself after this time.
+  dailyReloadAt: "04:00"
+
+# Data sources of the dashboard.
+sources:
+  # Demo source for checking the freshness display.
+  demo:
+    # Leave this off in daily use.
+    enabled: false
+
+# Nightly copy of the database into the backup folder.
+backup:
+  # Local time of the nightly database copy.
+  time: "03:00"
+  # Number of backup files to keep (1 to 60).
+  retention: 14

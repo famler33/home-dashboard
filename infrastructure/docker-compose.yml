@@ -1,0 +1,49 @@
+# Home-Dashboard on the Synology NAS (Container Manager -> Project).
+# Variables come from the .env file next to this file (see .env.example).
+# The defaults below are deliberately restrictive: without DASHBOARD_BIND_IP the port
+# is only reachable on the NAS itself, never on the whole network.
+name: home-dashboard
+
+services:
+  dashboard:
+    container_name: home-dashboard
+    image: home-dashboard:${BUILD_ID:-dev}
+    platform: linux/amd64
+    build:
+      context: ..
+      dockerfile: infrastructure/Dockerfile
+      args:
+        BUILD_ID: ${BUILD_ID:-dev}
+    # Publish on the NAS LAN address only - never as a bare "8080:8080" (= all interfaces).
+    ports:
+      - ${DASHBOARD_BIND_IP:-127.0.0.1}:${DASHBOARD_PORT:-8080}:8080
+    user: ${DASHBOARD_UID:-1000}:${DASHBOARD_GID:-1000}
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+    environment:
+      BUILD_ID: ${BUILD_ID:-dev}
+    volumes:
+      - ./config:/config:ro
+      - ./data:/data
+      - ./backup:/backup
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://127.0.0.1:8080/api/v1/health').then((r) => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "3"
