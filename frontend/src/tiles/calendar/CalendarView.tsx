@@ -71,7 +71,7 @@ export function CalendarView({ snapshot, now, layout, tab, budget }: Props) {
               date: group.date,
               head: heights.head,
               rows: group.items.length === 0 ? [heights.body] : group.items.map(rowHeight),
-              isToday: group.kind === 'today',
+              partial: group.kind !== 'date',
             })),
           },
           effectiveBudget,

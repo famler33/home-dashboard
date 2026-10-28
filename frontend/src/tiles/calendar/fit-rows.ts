@@ -6,7 +6,7 @@ export interface FitPlan {
   /** Height of the "+ n weitere" row, reserved whenever something has to be dropped. */
   more: number;
   /** Per day the heading height and the height of every body row (the empty-today text is one row). */
-  days: { date: string; head: number; rows: number[]; isToday: boolean }[];
+  days: { date: string; head: number; rows: number[]; partial: boolean }[];
 }
 
 export interface FitResult {
@@ -34,7 +34,8 @@ function rowsThatFit(head: number, rows: readonly number[], room: number): numbe
 }
 
 /**
- * Fills whole rows by priority (Kita block, today, tomorrow, later days). Days that do not fit
+ * Fills whole rows by priority (Kita block, today, tomorrow, later days). Partial days (today and tomorrow) get as many rows as
+ * fit; later days that do not fit
  * collapse to their heading with a count, then disappear; the last row becomes "+ n weitere".
  * Heights and budget share one unit (pixels in the browser).
  */
@@ -75,7 +76,7 @@ export function fitRows(plan: FitPlan, budget: number): FitResult {
       available -= need;
       return { date: day.date, shown: day.rows.length, collapsed: false, hidden: false };
     }
-    if (available >= day.head && day.isToday) {
+    if (available >= day.head && day.partial) {
       const shown = Math.max(0, rowsThatFit(day.head, day.rows, available));
       more += day.rows.length - shown;
       available = 0;

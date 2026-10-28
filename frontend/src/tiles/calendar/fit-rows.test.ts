@@ -93,10 +93,10 @@ describe('fitRows', () => {
   });
 
   it('fills a partial day with as many rows as fit instead of collapsing it', () => {
-    // today 1+2 rows, tomorrow 1+4 rows (partial), budget 8: more 1, today 3, tomorrow gets heading + 3
-    const result = fitRows(plan(0, [day('a', 2, true), day('b', 4, true)]), 8);
-    expect(result.days[1]).toEqual({ date: 'b', shown: 3, collapsed: false, hidden: false });
-    expect(result.more).toBe(1);
+    // today 1+2 rows, tomorrow 1+4 rows (partial), budget 7: one row for more, today 3, tomorrow heading + 2
+    const result = fitRows(plan(0, [day('a', 2, true), day('b', 4, true)]), 7);
+    expect(result.days[1]).toEqual({ date: 'b', shown: 2, collapsed: false, hidden: false });
+    expect(result.more).toBe(2);
   });
 
   it('still collapses days that are not partial', () => {
