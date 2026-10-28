@@ -1,10 +1,14 @@
 import { expect, test } from '@playwright/test';
 import { mockSnapshot, screenshotDir, smallestFontSize, snapshotBody } from './helpers';
 
+// CSS pixel sizes: a physical 2048x1536 iPad reports 1024x768, a 10" Android tablet 1280x800.
 const tabletViewports = [
   { width: 1920, height: 1200, label: '16x10' },
   { width: 2048, height: 1536, label: '4x3' },
   { width: 1280, height: 800, label: '16x10-small' },
+  { width: 1024, height: 768, label: '4x3-ipad-css' },
+  { width: 1180, height: 820, label: 'ipad-air-css' },
+  { width: 1280, height: 720, label: '16x9' },
 ];
 
 // Covers: FR-1, FR-3, NFR-8, AC-1, AC-2, AC-37
@@ -58,11 +62,73 @@ for (const viewport of tabletViewports) {
       }
     });
 
+    test('fits every tile content inside its card without clipping or overlap', async ({
+      page,
+    }) => {
+      const problems = await page.getByRole('region').evaluateAll((sections) => {
+        const found: string[] = [];
+        for (const section of sections) {
+          const box = section.getBoundingClientRect();
+          const heading = section.querySelector('h2')?.getBoundingClientRect();
+          for (const element of Array.from(section.querySelectorAll('*'))) {
+            if (element.closest('.sr-only')) continue;
+            const r = element.getBoundingClientRect();
+            if (r.width === 0 || r.height === 0) continue;
+            const label = `${section.getAttribute('aria-labelledby')}:${element.tagName}`;
+            if (
+              r.bottom > box.bottom + 1 ||
+              r.top < box.top - 1 ||
+              r.right > box.right + 1 ||
+              r.left < box.left - 1
+            ) {
+              found.push(`${label} outside card`);
+            }
+            if (
+              heading &&
+              element.tagName !== 'H2' &&
+              !element.contains(section.querySelector('h2')) &&
+              element.closest('h2') === null
+            ) {
+              if (
+                r.top < heading.bottom - 1 &&
+                r.bottom > heading.top + 1 &&
+                r.left < heading.right &&
+                r.right > heading.left
+              ) {
+                found.push(`${label} overlaps the heading`);
+              }
+            }
+          }
+          if (section.scrollHeight > section.clientHeight + 1) found.push(`${section.id} scrolls`);
+        }
+        return found;
+      });
+      expect(problems).toEqual([]);
+    });
+
     test('has no text node below 28px', async ({ page }) => {
       expect(await smallestFontSize(page)).toBeGreaterThanOrEqual(28);
     });
   });
 }
+
+// Covers: FR-14, AC-20, AC-37
+test.describe('small landscape screens', () => {
+  test.use({ viewport: { width: 960, height: 600 } });
+
+  test('fall back to the scrollable phone layout without horizontal scrolling', async ({
+    page,
+  }) => {
+    await mockSnapshot(page);
+    await page.goto('/');
+    await expect(page.getByRole('region')).toHaveCount(4);
+    await expect(page.getByTestId('drift-wrapper')).toHaveCount(0);
+    const overflow = await page.evaluate(
+      () => document.documentElement.scrollWidth - window.innerWidth,
+    );
+    expect(overflow).toBeLessThanOrEqual(0);
+  });
+});
 
 // Covers: NFR-5, NFR-6, AC-43
 test.describe('transport and access', () => {
@@ -91,6 +157,21 @@ test.describe('transport and access', () => {
     await page.clock.runFor(5 * 60_000);
     expect(foreign).toEqual([]);
     expect(messages.filter((text) => /content security policy/i.test(text))).toEqual([]);
+  });
+
+  // Covers: NFR-5, AC-27
+  test('contains no credential strings in the delivered bundle', async ({ request }) => {
+    const index = await (await request.get('/')).text();
+    const assets = [...index.matchAll(/(?:src|href)="(\/assets\/[^"]+\.(?:js|css))"/g)].map(
+      (match) => match[1]!,
+    );
+    expect(assets.length).toBeGreaterThan(0);
+    for (const asset of assets) {
+      const body = await (await request.get(asset)).text();
+      for (const forbidden of ['credentials.yaml', 'CHANGE_ME', 'apiKey', 'S3CR3T']) {
+        expect(body.includes(forbidden), `${asset} contains ${forbidden}`).toBe(false);
+      }
+    }
   });
 
   test('sends the security headers from the real server', async ({ request }) => {

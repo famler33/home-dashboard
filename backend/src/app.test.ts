@@ -98,6 +98,15 @@ describe('GET /api/v1/health', () => {
     expect(response.body).not.toContain('SECRET-LEAK');
   });
 
+  it('does not write request log lines for health probes', async () => {
+    const instance = await build();
+    await instance.inject('/api/v1/health');
+    await instance.inject('/api/v1/snapshot');
+    const joined = logLines.join('');
+    expect(joined).not.toContain('/api/v1/health');
+    expect(joined).toContain('/api/v1/snapshot');
+  });
+
   it('adds no version or server headers and sets no-store', async () => {
     const response = await (await build()).inject('/api/v1/health');
     expect(response.headers['server']).toBeUndefined();
