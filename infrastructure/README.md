@@ -152,6 +152,43 @@ Die Wetter-Kachel braucht keinen Schlüssel und kein Konto. Sie holt offene Date
   „Radar veraltet“ und Alter sichtbar; die Kachel zeigt nie einen leeren Fehler.
 - **Netzwerk:** Die Firewall des NAS muss ausgehendes HTTPS zu diesen drei Hosts erlauben.
 
+## Kalender
+
+Die Kalender-Kachel liest den gemeinsamen Familienkalender (iCloud) und die beiden Arbeitskalender (Google)
+**nur lesend** als ICS-Feed. Es gibt kein Passwort und keinen Schreibzugriff auf dem NAS; die Feed-Adresse ist
+das Geheimnis: Wer sie kennt, kann diesen Kalender lesen.
+
+1. **Adresse besorgen**
+   - *iCloud (Familienkalender):* Der Kalender muss in iCloud liegen und der Person gehören, die ihn veröffentlicht.
+     Am Mac in der Kalender-App Rechtsklick auf den Kalender, „Freigabeoptionen“, „Öffentlicher Kalender“, Link
+     kopieren; am iPhone Kalender, „Kalender“, beim Kalender (i), „Öffentlicher Kalender“, „Link teilen“.
+     Nimm dafür einen eigenen Familienkalender ohne Sensibles.
+   - *Google (Arbeitskalender, je Person):* calendar.google.com am Computer, bei „Meine Kalender“ die drei Punkte,
+     „Einstellungen und Freigabe“, unten „Kalender integrieren“, **„Geheime Adresse im iCal-Format“**. Fehlt dieser
+     Eintrag, hat der Firmen-Admin ihn gesperrt. Die „Öffentliche Adresse“ nie verwenden: Sie ist erratbar und macht
+     den Kalender für jeden lesbar. Ausweg: Termine in einen privaten Kalender weiterleiten und dessen geheime
+     Adresse nehmen (Firmenregeln beachten).
+2. **Eintragen:** in `config/credentials.yaml` (Modus 600, Besitzer wie der Container) je Kalender ein Eintrag, siehe
+   `credentials.example.yaml`: `calendar-family`, `calendar-person-1`, `calendar-person-2`, jeweils mit `url`.
+   Erlaubt sind nur Adressen von `calendar.google.com` und `icloud.com`; `webcal://` wird zu `https://`. Die Adresse
+   nie in Chats, Tickets oder Commits einfügen.
+3. **Einschalten:** in `config/settings.yaml` unter `sources.calendar` `enabled: true`, je Kalender `enabled`, `name`
+   und `color`; `kitaKeyword` bestimmt das Stichwort für den Block „Kita“. Mit `selfAddresses` (deine Adresse im
+   jeweiligen Kalender) werden abgelehnte Einladungen ausgeblendet. Container neu starten; ein Kalender ohne gültige
+   Adresse stoppt den Start mit einer Meldung, die nur Datei und Schlüssel nennt.
+4. **Prüfen:** Im Ordner `backend/` zeigt `node --import tsx scripts/calendar-live-check.mjs <settings.yaml>
+   <credentials.yaml>`, ob die Feeds erreichbar sind (Größe, Anzahl Termine, Dauer), ohne Titel oder Adressen auszugeben.
+
+- **Datenschutz:** Die Titel der Arbeitstermine gehen an jedes Gerät im Heimnetz und stehen im Zwischenspeicher der
+  Datenbank, also auch in der nächtlichen Sicherung im Ordner `backup/` (Modus 0700, nur auf dem NAS).
+- **Adresse abgeflossen:** Bei Google unter „Kalender integrieren“ die geheime Adresse zurücksetzen. Bei iCloud die
+  Veröffentlichung beenden und neu aktivieren. Danach die neue Adresse eintragen.
+- **Aktualität:** Die Kalender werden alle 15 Minuten gelesen; Google liefert Änderungen teils verzögert. „Veraltet“
+  heißt, dass der Abruf scheitert, nicht dass der Anbieter langsam ist.
+- **Netzwerk:** Die Firewall des NAS muss ausgehendes HTTPS zu `calendar.google.com` und `*.icloud.com` erlauben.
+- **Einzeln abschalten:** `enabled: false` je Kalender; ohne `sources.calendar` oder mit `enabled: false` bleibt der
+  Platzhalter der Kachel.
+
 ## Tablet einrichten
 
 Das Dashboard läuft im Querformat im Browser im Vollbild. Für den Dauerbetrieb am Tablet:
