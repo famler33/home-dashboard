@@ -3,6 +3,7 @@ import { useId, type CSSProperties, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { relativeAge, type TileStatus } from '../snapshot/freshness';
 import { TileState, type StateKind } from './TileState';
+import type { StateTextKeys } from './types';
 
 export type FrameStatus = TileStatus | 'crashed';
 
@@ -12,6 +13,7 @@ interface Props {
   /** Age of the data in seconds, `null` when there is none or the tile has no source. */
   ageSeconds: number | null;
   index: number;
+  stateTexts?: Partial<Record<'never-loaded' | 'error', StateTextKeys>> | undefined;
   children?: ReactNode;
 }
 
@@ -29,7 +31,7 @@ function useLastUpdated(ageSeconds: number | null): string | null {
   return t('tile.lastUpdated', { relative });
 }
 
-export function TileFrame({ title, status, ageSeconds, index, children }: Props) {
+export function TileFrame({ title, status, ageSeconds, index, stateTexts, children }: Props) {
   const { t } = useTranslation();
   const headingId = useId();
   const lastUpdated = useLastUpdated(status === 'fresh' || status === 'stale' ? ageSeconds : null);
@@ -46,7 +48,16 @@ export function TileFrame({ title, status, ageSeconds, index, children }: Props)
         {title}
       </h2>
       <div className="min-h-0 flex-1 overflow-hidden">
-        {showsContent ? children : <TileState kind={status as StateKind} />}
+        {showsContent ? (
+          children
+        ) : (
+          <TileState
+            kind={status as StateKind}
+            texts={
+              status === 'never-loaded' || status === 'error' ? stateTexts?.[status] : undefined
+            }
+          />
+        )}
       </div>
       {lastUpdated !== null && (
         <footer

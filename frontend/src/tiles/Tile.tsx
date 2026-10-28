@@ -16,10 +16,10 @@ const neverEmpty = (): boolean => false;
 function ConnectedTile({ definition, index }: Props) {
   const { t } = useTranslation();
   const { snapshot, receivedAtMonotonic, nowMono } = useSnapshot();
-  const title = t(definition.titleKey);
   const { Component, sourceId } = definition;
 
   if (sourceId === undefined) {
+    const title = definition.heading?.(null, t) ?? t(definition.titleKey);
     return (
       <TileFrame title={title} status="fresh" ageSeconds={null} index={index}>
         <Component data={null} />
@@ -28,6 +28,7 @@ function ConnectedTile({ definition, index }: Props) {
   }
 
   const source = snapshot?.sources.find((entry) => entry.id === sourceId);
+  const title = definition.heading?.(source?.data ?? null, t) ?? t(definition.titleKey);
   const status = deriveTileStatus({
     source,
     snapshotPresent: snapshot !== null,
@@ -41,7 +42,13 @@ function ConnectedTile({ definition, index }: Props) {
       : (source?.ageSeconds ?? null);
 
   return (
-    <TileFrame title={title} status={status} ageSeconds={age} index={index}>
+    <TileFrame
+      title={title}
+      status={status}
+      ageSeconds={age}
+      index={index}
+      stateTexts={definition.stateTexts}
+    >
       <Component data={source?.data ?? null} />
     </TileFrame>
   );

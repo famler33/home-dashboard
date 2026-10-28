@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import type { ParseKeys } from 'i18next';
 import { useTranslation } from 'react-i18next';
+import type { StateTextKeys } from './types';
 
 export type StateKind = 'loading' | 'never-loaded' | 'empty' | 'error' | 'crashed';
 
@@ -51,7 +52,7 @@ export const stateViews: Record<StateKind, StateView> = {
   },
 };
 
-export function TileState({ kind }: { kind: StateKind }) {
+export function TileState({ kind, texts }: { kind: StateKind; texts?: StateTextKeys | undefined }) {
   const { t } = useTranslation();
   const view = stateViews[kind];
   const Icon = view.icon;
@@ -64,9 +65,9 @@ export function TileState({ kind }: { kind: StateKind }) {
       />
       <div className="flex min-w-0 flex-col gap-1">
         <p data-testid="state-title" className="text-title text-ink">
-          {t(view.titleKey)}
+          {t(texts?.titleKey ?? view.titleKey)}
         </p>
-        <p className="text-caption tablet-short:sr-only">{t(view.hintKey)}</p>
+        <p className="text-caption tablet-short:sr-only">{t(texts?.hintKey ?? view.hintKey)}</p>
       </div>
     </div>
   );

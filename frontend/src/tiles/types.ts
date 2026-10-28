@@ -1,9 +1,14 @@
-import type { ParseKeys } from 'i18next';
+import type { ParseKeys, TFunction } from 'i18next';
 import type { ComponentType } from 'react';
 
 export interface TileContentProps {
   /** Last known payload of the bound source, `null` for tiles without a source. */
   data: unknown;
+}
+
+export interface StateTextKeys {
+  titleKey: ParseKeys;
+  hintKey: ParseKeys;
 }
 
 export interface GridArea {
@@ -16,6 +21,10 @@ export interface GridArea {
 export interface TileDefinition {
   id: string;
   titleKey: ParseKeys;
+  /** Full heading derived from the payload (which is `null` until data exists); `null` keeps the base title. */
+  heading?: (data: unknown, t: TFunction) => string | null;
+  /** Replaces the generic texts of the never-loaded and error states. */
+  stateTexts?: Partial<Record<'never-loaded' | 'error', StateTextKeys>>;
   /** Backend source whose freshness this tile shows. */
   sourceId?: string | undefined;
   /** Hide the tile while its source is absent from the snapshot. */
