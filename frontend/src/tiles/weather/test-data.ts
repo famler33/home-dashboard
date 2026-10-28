@@ -34,22 +34,38 @@ function frameValues(step: number): string {
   return btoa(String.fromCharCode(...bytes));
 }
 
+const corners: [number, number][] = [
+  [12.73196, 52.98159],
+  [12.66458, 52.10996],
+  [14.07482, 52.0588],
+  [14.17765, 52.92888],
+];
+
+function tilesCovering(points: [number, number][], zoom: number): { x: number; y: number }[] {
+  const n = 2 ** zoom;
+  const tiles = points.map(([lon, lat]) => {
+    const rad = (lat * Math.PI) / 180;
+    return {
+      x: Math.floor(((lon + 180) / 360) * n),
+      y: Math.floor(((1 - Math.log(Math.tan(rad) + 1 / Math.cos(rad)) / Math.PI) / 2) * n),
+    };
+  });
+  const xs = tiles.map((tile) => tile.x);
+  const ys = tiles.map((tile) => tile.y);
+  const out: { x: number; y: number }[] = [];
+  for (let y = Math.min(...ys); y <= Math.max(...ys); y += 1) {
+    for (let x = Math.min(...xs); x <= Math.max(...xs); x += 1) out.push({ x, y });
+  }
+  return out;
+}
+
 export function radarDocumentFixture(frameCount = 5): RadarDocument {
   return {
     version: '2026-10-28T13:40:00.000Z',
     size: SIZE,
-    corners: [
-      [12.73196, 52.98159],
-      [12.66458, 52.10996],
-      [14.07482, 52.0588],
-      [14.17765, 52.92888],
-    ],
+    corners,
     home: { col: 50, row: 50, lat: 52.52, lon: 13.405 },
-    map: {
-      zoom: 9,
-      tileSize: 256,
-      tiles: [274, 275, 276].flatMap((x) => [168, 169].map((y) => ({ x, y }))),
-    },
+    map: { zoom: 9, tileSize: 256, tiles: tilesCovering(corners, 9) },
     frames: Array.from({ length: frameCount }, (_, index) => ({
       time: new Date(Date.parse('2026-10-28T12:40:00Z') + index * 30 * 60_000).toISOString(),
       kind: index < 3 ? ('observed' as const) : ('forecast' as const),
