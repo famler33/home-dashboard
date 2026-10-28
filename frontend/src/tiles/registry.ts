@@ -19,7 +19,7 @@ export const tileRegistry: readonly TileDefinition[] = [
   {
     id: 'calendar',
     titleKey: 'tiles.calendar',
-    tablet: { col: 6, row: 1, colSpan: 7, rowSpan: 3 },
+    tablet: { col: 6, row: 1, colSpan: 7, rowSpan: 4 },
     phoneOrder: 1,
     Component: PlaceholderTile,
   },
@@ -30,7 +30,7 @@ export const tileRegistry: readonly TileDefinition[] = [
     requiresSource: true,
     replaces: 'calendar',
     deriveEntry: deriveCalendarEntry,
-    tablet: { col: 6, row: 1, colSpan: 7, rowSpan: 3 },
+    tablet: { col: 6, row: 1, colSpan: 7, rowSpan: 4 },
     phoneOrder: 1,
     stateTexts: {
       'never-loaded': {
@@ -72,7 +72,7 @@ export const tileRegistry: readonly TileDefinition[] = [
   {
     id: 'news',
     titleKey: 'tiles.news',
-    tablet: { col: 6, row: 4, colSpan: 7, rowSpan: 3 },
+    tablet: { col: 6, row: 5, colSpan: 7, rowSpan: 2 },
     phoneOrder: 3,
     Component: PlaceholderTile,
   },
@@ -82,7 +82,7 @@ export const tileRegistry: readonly TileDefinition[] = [
     sourceId: 'demo',
     requiresSource: true,
     replaces: 'news',
-    tablet: { col: 6, row: 4, colSpan: 7, rowSpan: 3 },
+    tablet: { col: 6, row: 5, colSpan: 7, rowSpan: 2 },
     phoneOrder: 3,
     isEmpty: (data) => data === null || data === undefined,
     Component: DemoTile,

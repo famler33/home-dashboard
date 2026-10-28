@@ -1,8 +1,13 @@
 import type { CalendarTab } from './types';
 
+import { dotClass } from './Legend';
+import type { CalendarColor } from './types';
+
 export interface TabItem {
   id: CalendarTab;
   label: string;
+  /** Calendar colour shown as a dot in front of the name. */
+  color?: CalendarColor;
 }
 
 interface Props {
@@ -40,6 +45,13 @@ export function Tabs({ tabs, active, label, layout, onSelect }: Props) {
                 : 'text-ink-muted ring-1 ring-inset ring-ink-muted/40'
             }`}
           >
+            {tab.color && (
+              <span
+                aria-hidden="true"
+                data-testid="tab-dot"
+                className={`mr-2 inline-block h-3 w-3 rounded-full align-middle ${dotClass[tab.color]}`}
+              />
+            )}
             {tab.label}
           </button>
         );

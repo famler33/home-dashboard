@@ -28,7 +28,11 @@ export function CalendarTile() {
     settings.calendars.length > 1
       ? [
           { id: 'all', label: t('calendar.tabs.all') },
-          ...settings.calendars.map((info) => ({ id: info.id as CalendarTab, label: info.name })),
+          ...settings.calendars.map((info) => ({
+            id: info.id as CalendarTab,
+            label: info.name,
+            color: info.color,
+          })),
         ]
       : [];
   const active: CalendarTab = tabs.some((item) => item.id === tab) ? tab : 'all';

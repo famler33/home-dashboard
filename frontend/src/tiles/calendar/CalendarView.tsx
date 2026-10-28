@@ -87,9 +87,13 @@ export function CalendarView({ snapshot, now, layout, tab, budget }: Props) {
       serverTime,
     ),
   }));
+  const hasTabs = settings.calendars.length > 1;
+  // With tabs the dots on the tabs name the calendars; the legend then only reports problems.
   const legendEntries =
     tab === 'all'
-      ? withProblems
+      ? hasTabs
+        ? withProblems.filter((entry) => entry.problem)
+        : withProblems
       : withProblems.filter((entry) => entry.info.id === tab && entry.problem);
   const activeName = settings.calendars.find((info) => info.id === tab)?.name ?? '';
 
