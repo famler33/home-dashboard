@@ -326,3 +326,26 @@ describe('Tile fresh footer', () => {
     expect(screen.getByTestId('tile-footer')).toHaveTextContent('Veraltet');
   });
 });
+
+// Covers: FR-8, AC-33
+describe('Tile with a derived entry', () => {
+  it('uses deriveEntry for the frame state of a tile bound to several sources', () => {
+    const definition: TileDefinition = {
+      id: 'multi',
+      titleKey: 'tiles.calendar',
+      tablet: { col: 1, row: 1, colSpan: 4, rowSpan: 2 },
+      phoneOrder: 0,
+      deriveEntry: () =>
+        sourceFixture({ id: 'multi', status: 'error', data: null, ageSeconds: null }),
+      Component: () => <p>Inhalt</p>,
+    };
+    renderWithProviders(
+      <Tile definition={definition} index={0} />,
+      contextFixture(snapshotFixture()),
+    );
+    expect(screen.getByRole('region', { name: de.tiles.calendar })).toHaveAttribute(
+      'data-status',
+      'error',
+    );
+  });
+});

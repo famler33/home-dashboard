@@ -72,3 +72,31 @@ describe('color tokens', () => {
     expect(contrastRatio('#777777', '#777777')).toBeCloseTo(1, 5);
   });
 });
+
+// Covers: NFR-2, AC-13
+describe('calendar colour tokens', () => {
+  const names = [
+    'cal-blue',
+    'cal-green',
+    'cal-orange',
+    'cal-purple',
+    'cal-teal',
+    'cal-rose',
+  ] as const;
+
+  it('gives every calendar colour at least 4.5:1 against the card in day and night theme', () => {
+    for (const theme of ['day', 'night'] as const) {
+      for (const name of names) {
+        const ratio = contrastRatio(themes[theme][name], themes[theme]['surface-raised']);
+        expect(ratio, `${theme}: ${name}`).toBeGreaterThanOrEqual(4.5);
+      }
+    }
+  });
+
+  it('keeps the six colours pairwise distinct in both themes', () => {
+    for (const theme of ['day', 'night'] as const) {
+      const values = names.map((name) => themes[theme][name]);
+      expect(new Set(values).size).toBe(names.length);
+    }
+  });
+});

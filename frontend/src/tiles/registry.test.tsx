@@ -119,3 +119,33 @@ describe('weather tile area', () => {
     expect(shown).not.toContain('weather-live');
   });
 });
+
+// Covers: FR-10, AC-34
+describe('tiles bound to several sources', () => {
+  it('shows a tile when any of its sources is in the snapshot and hides it otherwise', () => {
+    const multi = sample(
+      'multi',
+      { col: 1, row: 1, colSpan: 2, rowSpan: 2 },
+      {
+        sourceIds: ['calendar-family', 'calendar-person-1'],
+        requiresSource: true,
+      },
+    );
+    const present = snapshotFixture({ sources: [sourceFixture({ id: 'calendar-person-1' })] });
+    expect(visibleTiles([multi], present)).toEqual([multi]);
+    expect(
+      visibleTiles([multi], snapshotFixture({ sources: [sourceFixture({ id: 'x' })] })),
+    ).toEqual([]);
+  });
+
+  it('replaces the calendar placeholder with the live calendar tile when a calendar source exists', () => {
+    const ids = (sources: string[]) =>
+      visibleTiles(
+        tileRegistry,
+        snapshotFixture({ sources: sources.map((id) => sourceFixture({ id })) }),
+      ).map((tile) => tile.id);
+    expect(ids(['calendar-family'])).toContain('calendar-live');
+    expect(ids(['calendar-family'])).not.toContain('calendar');
+    expect(ids([])).toContain('calendar');
+  });
+});
