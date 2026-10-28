@@ -63,7 +63,7 @@ function show(
 ) {
   return renderWithProviders(
     <ShellContext.Provider value={{ layout, theme: 'day' }}>
-      <CalendarTile data={{}} />
+      <CalendarTile />
     </ShellContext.Provider>,
     contextFixture(snapshotWith(sources, calendar)),
   );
@@ -258,7 +258,7 @@ describe('CalendarTile tabs, legend and states', () => {
         lastUpdated: null,
       }),
     ]);
-    expect(screen.getByText(de.calendar.neverLoaded)).toBeInTheDocument();
+    expect(screen.getAllByText(de.calendar.neverLoaded).length).toBeGreaterThan(0);
     expect(rowTitles()).toContain('Zahnarzt');
   });
 
@@ -367,7 +367,7 @@ describe('CalendarTile phone and texts', () => {
     );
     renderWithProviders(
       <ShellContext.Provider value={{ layout: 'tablet', theme: 'day' }}>
-        <CalendarTile data={{}} />
+        <CalendarTile />
       </ShellContext.Provider>,
       contextFixture(snapshotWith(defaultSources())),
       createI18n(pseudo, 'xx'),

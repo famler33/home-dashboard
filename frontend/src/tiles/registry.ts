@@ -1,4 +1,6 @@
 import type { Snapshot } from '../api/types';
+import { CalendarTile } from './calendar/CalendarTile';
+import { deriveCalendarEntry } from './calendar/derive';
 import { DemoTile } from './demo/DemoTile';
 import { weatherHeading } from './weather/heading';
 import { isWeatherPayload } from './weather/types';
@@ -20,6 +22,25 @@ export const tileRegistry: readonly TileDefinition[] = [
     tablet: { col: 6, row: 1, colSpan: 7, rowSpan: 3 },
     phoneOrder: 1,
     Component: PlaceholderTile,
+  },
+  {
+    id: 'calendar-live',
+    titleKey: 'tiles.calendar',
+    sourceIds: ['calendar-family', 'calendar-person-1', 'calendar-person-2'],
+    requiresSource: true,
+    replaces: 'calendar',
+    deriveEntry: deriveCalendarEntry,
+    tablet: { col: 6, row: 1, colSpan: 7, rowSpan: 3 },
+    phoneOrder: 1,
+    stateTexts: {
+      'never-loaded': {
+        titleKey: 'calendar.states.neverLoaded.title',
+        hintKey: 'calendar.states.neverLoaded.hint',
+      },
+      error: { titleKey: 'calendar.states.error.title', hintKey: 'calendar.states.error.hint' },
+    },
+    freshFooter: false,
+    Component: CalendarTile,
   },
   {
     id: 'weather',
