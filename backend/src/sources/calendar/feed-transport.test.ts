@@ -1,5 +1,5 @@
 import { gzipSync } from 'node:zlib';
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { FeedRejected } from './feed-url.js';
 import {
   createFeedTransport,
@@ -230,12 +230,8 @@ describe('feed transport', () => {
 
   it('passes the abort signal to every request', async () => {
     const controller = new AbortController();
-    const spy = vi.fn(() => response(200, ICS));
-    const transport = createFeedTransport({
-      request: async (call) => spy(call as never),
-      resolve: async () => ['93.184.216.34'],
-    });
+    const { transport, calls } = setup(() => response(200, ICS));
     await transport(url, { ...base, signal: controller.signal });
-    expect(spy.mock.calls[0]).toBeDefined();
+    expect(calls[0]!.signal).toBe(controller.signal);
   });
 });
