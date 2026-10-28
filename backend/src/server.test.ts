@@ -5,6 +5,8 @@ import { readFileSync } from 'node:fs';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { tinyPng } from '../test/helpers/png.js';
 import { ConfigError } from './config/load-config.js';
+import type { FeedTransport } from './sources/calendar/feed-transport.js';
+import { FeedRejected } from './sources/calendar/feed-url.js';
 import { startServer, type RunningServer } from './server.js';
 
 const settings = `
@@ -239,5 +241,148 @@ describe('startServer weather wiring', () => {
       'weather-alerts': 'fresh',
       'weather-radar': 'error',
     });
+  });
+});
+
+describe('startServer calendar wiring', () => {
+  const icsFamily = readFileSync(
+    new URL('../test/fixtures/calendar/icloud-family.sample.ics', import.meta.url),
+    'utf8',
+  );
+  const calendarSettings = (family: boolean, person1 = false, tile = true) =>
+    settings.replace(
+      'sources: { demo: { enabled: true }, weather: { enabled: false } }',
+      `sources: { demo: { enabled: false }, weather: { enabled: false }, calendar: { enabled: ${tile}, kitaKeyword: Kita, calendars: {
+        family: { enabled: ${family}, name: Familie, color: blue },
+        person-1: { enabled: ${person1}, name: Alex, color: green },
+        person-2: { enabled: false, name: Ben, color: orange } } } }`,
+    );
+  const credentials = (person1 = false) =>
+    `calendar-family:\n  url: webcal://p12-caldav.icloud.com/published/2/SENTINEL-FAMILY\n${
+      person1
+        ? 'calendar-person-1:\n  url: https://calendar.google.com/calendar/ical/x/private-SENTINEL-WORK/basic.ics\n'
+        : ''
+    }`;
+  const calendarNow = () => Date.parse('2026-10-28T10:00:00Z');
+
+  function configure(text: string, creds: string) {
+    writeFileSync(join(root, 'config', 'settings.yaml'), text);
+    writeFileSync(join(root, 'config', 'credentials.yaml'), creds);
+    chmodSync(join(root, 'config', 'credentials.yaml'), 0o600);
+  }
+
+  async function snapshot(url: string) {
+    return (await (await fetch(`${url}/api/v1/snapshot`)).json()) as {
+      settings: { calendar?: unknown };
+      sources: { id: string; status: string; data: unknown }[];
+    };
+  }
+
+  it('registers one source per enabled calendar and projects names and colours', async () => {
+    configure(calendarSettings(true, true), credentials(true));
+    const seen: string[] = [];
+    const calendarTransport: FeedTransport = async (feed) => {
+      seen.push(feed.hostname);
+      return { status: 200, text: icsFamily };
+    };
+    server = await startServer(env(), { calendarTransport, now: calendarNow });
+    const body = await waitFor(async () => {
+      const value = await snapshot(server!.url);
+      return value.sources.filter((entry) => entry.status === 'fresh').length === 2
+        ? value
+        : undefined;
+    });
+    expect(body.sources.map((entry) => entry.id)).toEqual(['calendar-family', 'calendar-person-1']);
+    expect(body.settings.calendar).toEqual({
+      kitaKeyword: 'Kita',
+      calendars: [
+        { id: 'family', name: 'Familie', color: 'blue', role: 'family' },
+        { id: 'person-1', name: 'Alex', color: 'green', role: 'person' },
+      ],
+    });
+    expect(seen.sort()).toEqual(['calendar.google.com', 'p12-caldav.icloud.com']);
+  });
+
+  it('creates no source for a disabled calendar and none when the tile is off', async () => {
+    configure(calendarSettings(true, false), credentials());
+    server = await startServer(env(), {
+      calendarTransport: async () => ({ status: 200, text: icsFamily }),
+      now: calendarNow,
+    });
+    expect((await snapshot(server.url)).sources.map((entry) => entry.id)).toEqual([
+      'calendar-family',
+    ]);
+    await server.stop();
+
+    configure(calendarSettings(true, false, false), credentials());
+    server = await startServer(env(), {
+      calendarTransport: async () => ({ status: 200, text: icsFamily }),
+      now: calendarNow,
+    });
+    const body = await snapshot(server.url);
+    expect(body.sources).toEqual([]);
+    expect(body.settings.calendar).toBeUndefined();
+  });
+
+  it('keeps the other calendar fresh when one feed fails', async () => {
+    configure(calendarSettings(true, true), credentials(true));
+    const calendarTransport: FeedTransport = async (feed) => {
+      if (feed.hostname === 'calendar.google.com') throw new FeedRejected('status');
+      return { status: 200, text: icsFamily };
+    };
+    server = await startServer(env(), { calendarTransport, now: calendarNow });
+    const body = await waitFor(async () => {
+      const value = await snapshot(server!.url);
+      return value.sources.every((entry) => entry.status !== 'never-loaded') ? value : undefined;
+    });
+    const byId = Object.fromEntries(body.sources.map((entry) => [entry.id, entry.status]));
+    expect(byId).toEqual({ 'calendar-family': 'fresh', 'calendar-person-1': 'error' });
+  });
+
+  it('never returns a feed address in the snapshot, health or error responses', async () => {
+    configure(calendarSettings(true, true), credentials(true));
+    server = await startServer(env(), {
+      calendarTransport: async () => ({ status: 200, text: icsFamily }),
+      now: calendarNow,
+    });
+    await waitFor(async () => {
+      const value = await snapshot(server!.url);
+      return value.sources.every((entry) => entry.status === 'fresh') ? value : undefined;
+    });
+    for (const path of ['/api/v1/snapshot', '/api/v1/health', '/api/v1/nope', '/']) {
+      const text = await (await fetch(`${server.url}${path}`)).text();
+      expect(text, path).not.toContain('SENTINEL');
+      expect(text, path).not.toContain('icloud.com/published');
+    }
+  });
+
+  it('keeps feed addresses out of the database file', async () => {
+    configure(calendarSettings(true, true), credentials(true));
+    server = await startServer(env(), {
+      calendarTransport: async () => ({ status: 200, text: icsFamily }),
+      now: calendarNow,
+    });
+    await waitFor(async () => {
+      const value = await snapshot(server!.url);
+      return value.sources.every((entry) => entry.status === 'fresh') ? value : undefined;
+    });
+    await server.stop();
+    server = undefined;
+    const database = readFileSync(join(root, 'data', 'dashboard.sqlite'));
+    expect(database.includes('SENTINEL')).toBe(false);
+  });
+
+  it('exposes no route that changes or refreshes a calendar', async () => {
+    configure(calendarSettings(true), credentials());
+    server = await startServer(env(), {
+      calendarTransport: async () => ({ status: 200, text: icsFamily }),
+      now: calendarNow,
+    });
+    for (const method of ['POST', 'PUT', 'PATCH', 'DELETE']) {
+      for (const path of ['/api/v1/calendar', '/api/v1/calendar/refresh', '/api/v1/snapshot']) {
+        const response = await fetch(`${server.url}${path}`, { method });
+        expect(response.status, `${method} ${path}`).toBeGreaterThanOrEqual(400);
+      }
+    }
   });
 });
