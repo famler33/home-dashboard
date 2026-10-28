@@ -40,12 +40,9 @@ export function TileFrame({ title, status, ageSeconds, index, children }: Props)
       aria-labelledby={headingId}
       data-status={status}
       style={{ '--i': index } as CSSProperties}
-      className="animate-tile-in flex h-full min-h-0 flex-col gap-3 overflow-hidden rounded-3xl bg-surface-raised p-5 shadow-sm"
+      className="animate-tile-in flex h-full min-h-0 flex-col gap-3 overflow-hidden rounded-3xl bg-surface-raised p-5 shadow-sm tablet-short:gap-2 tablet-short:p-4"
     >
-      <h2
-        id={headingId}
-        className="text-caption font-medium uppercase tracking-wide text-ink-muted"
-      >
+      <h2 id={headingId} className="text-caption font-medium text-ink-muted">
         {title}
       </h2>
       <div className="min-h-0 flex-1 overflow-hidden">

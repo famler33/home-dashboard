@@ -53,14 +53,29 @@ export const phoneTypeScalePx: Record<TypeToken, number> = {
 };
 
 /**
- * Landscape screens of at least 1024 x 700 CSS pixels use the wall layout (a 2048 x 1536 iPad
- * reports 1024 x 768); smaller screens get the scrollable phone layout.
+ * Wall layout clauses (landscape, CSS pixels): at least 1024 x 750, or at least 1180 x 700.
+ * A 2048 x 1536 iPad reports 1024 x 768. Smaller screens get the scrollable phone layout.
  */
-export const tabletMediaQuery =
-  '(min-width: 1024px) and (min-height: 700px) and (orientation: landscape)';
+const tabletClauses = [
+  '(min-width: 1024px) and (min-height: 750px) and (orientation: landscape)',
+  '(min-width: 1180px) and (min-height: 700px) and (orientation: landscape)',
+];
 
-/** Wall layout on low screens: hints are visually hidden so the tiles keep their content. */
-export const tabletShortMediaQuery = `${tabletMediaQuery} and (max-height: 850px)`;
+export const tabletMediaQuery = tabletClauses.join(', ');
+
+/** Wall layout on low screens: hints are visually hidden and paddings shrink. */
+export const tabletShortMediaQuery = tabletClauses
+  .map((clause) => `${clause} and (max-height: 850px)`)
+  .join(', ');
+
+/** Line heights per type token: tight for large text so tiles keep their content. */
+export const lineHeights: Record<TypeToken, number> = {
+  caption: 1.3,
+  body: 1.4,
+  title: 1.2,
+  display: 1.05,
+  clock: 1,
+};
 
 export function fontSizeAt(
   token: TypeToken,

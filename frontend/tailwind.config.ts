@@ -3,6 +3,7 @@ import plugin from 'tailwindcss/plugin';
 import {
   colorTokens,
   hexToRgbChannels,
+  lineHeights,
   phoneTypeScalePx,
   tabletFontSizeCss,
   tabletMediaQuery,
@@ -25,7 +26,9 @@ export default {
         colorTokens.map((t) => [t, `rgb(var(--color-${t}) / <alpha-value>)`]),
       ),
       fontFamily: { sans: ['"Inter Variable"', 'system-ui', 'sans-serif'] },
-      fontSize: Object.fromEntries(typeTokens.map((t) => [t, `var(--text-${t})`])),
+      fontSize: Object.fromEntries(
+        typeTokens.map((t) => [t, [`var(--text-${t})`, { lineHeight: String(lineHeights[t]) }]]),
+      ),
       transitionDuration: { calm: '600ms' },
       transitionTimingFunction: { calm: 'cubic-bezier(0.22, 1, 0.36, 1)' },
     },

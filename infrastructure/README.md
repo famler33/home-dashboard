@@ -143,8 +143,8 @@ Das Dashboard läuft im Querformat im Browser im Vollbild. Für den Dauerbetrieb
 - **Nachts:** Das Dashboard dimmt sich selbst ab `display.nightFrom` und verschiebt statische Elemente
   langsam gegen Einbrennen. Die Display-Helligkeit des Tablets zusätzlich niedrig stellen.
 - **Akku:** Das Tablet dauerhaft am Netzteil betreiben; wenn möglich Ladeobergrenze (z. B. 80 %) aktivieren.
-- **Kleine Bildschirme:** Das Wandlayout braucht Querformat mit mindestens 1024 × 700 Bildpunkten (CSS-Pixel; ein
-  iPad mit 2048 × 1536 Pixeln meldet 1024 × 768). Auf kleineren Bildschirmen erscheint die scrollbare Handy-Ansicht.
+- **Kleine Bildschirme:** Das Wandlayout braucht Querformat mit mindestens 1024 × 750 oder 1180 × 700 Bildpunkten
+  (CSS-Pixel; ein iPad mit 2048 × 1536 Pixeln meldet 1024 × 768). Auf kleineren Bildschirmen erscheint die scrollbare Handy-Ansicht.
 - Die Adresse im Browser ist `http://dashboard.home` (oder die feste IP mit Port).
 
 ## Handy

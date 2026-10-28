@@ -60,7 +60,7 @@ export function TileState({ kind }: { kind: StateKind }) {
       <Icon
         aria-hidden="true"
         data-state-icon={view.iconName}
-        className="h-[1.6em] w-[1.6em] shrink-0"
+        className="h-[1.3em] w-[1.3em] shrink-0"
       />
       <div className="flex min-w-0 flex-col gap-1">
         <p data-testid="state-title" className="text-title text-ink">
