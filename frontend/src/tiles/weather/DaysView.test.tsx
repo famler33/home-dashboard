@@ -26,6 +26,19 @@ describe('DaysView', () => {
     expect(container.querySelectorAll('[data-testid="day"] svg')).toHaveLength(7);
   });
 
+  it('marks today on the wall with the weekday in bold and the word Heute for screen readers', () => {
+    renderWithProviders(<DaysView weather={weather()} layout="wall" />);
+    const [today] = screen.getAllByTestId('day');
+    expect(within(today!).getByText('Mi.')).toHaveAttribute('aria-hidden', 'true');
+    expect(within(today!).getByText('Heute').className).toContain('sr-only');
+  });
+
+  it('writes the word Heute on the phone', () => {
+    renderWithProviders(<DaysView weather={weather()} layout="phone" />);
+    const [today] = screen.getAllByTestId('day');
+    expect(within(today!).getByText('Heute').className).not.toContain('sr-only');
+  });
+
   it('shows the rain probability only from 20 percent', () => {
     const data = weather();
     data.daily[2] = { ...data.daily[2]!, precipProbability: 19 };

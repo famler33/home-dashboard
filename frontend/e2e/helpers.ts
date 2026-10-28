@@ -79,7 +79,9 @@ export async function tileFitProblems(page: Page): Promise<string[]> {
           r.right > box.right + 1 ||
           r.left < box.left - 1
         ) {
-          found.push(`${name}: ${element.tagName} outside card`);
+          found.push(
+            `${name}: ${element.tagName} outside card (${(element.textContent ?? '').trim().slice(0, 20)} | ${String(element.getAttribute('class')).slice(0, 40)})`,
+          );
         }
         if (
           heading &&

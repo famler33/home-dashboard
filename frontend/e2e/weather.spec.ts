@@ -293,6 +293,7 @@ test.describe('symbol motion', () => {
   }) => {
     await mockWeather(page);
     await page.goto('/');
+    await expect(page.getByTestId('hour-slot').first()).toBeVisible();
     const names = await page.locator('[class*="symbol-"]').evaluateAll((nodes) =>
       nodes.map((node) => ({
         name: getComputedStyle(node).animationName,

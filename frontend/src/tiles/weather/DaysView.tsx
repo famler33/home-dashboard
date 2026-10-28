@@ -26,9 +26,16 @@ export function DaysView({
           data-testid="day"
           className={`flex text-caption ${wall ? 'flex-col items-center justify-between' : 'items-center gap-3'}`}
         >
-          <span className={`${wall ? '' : 'w-24'} text-ink-muted`}>
-            {index === 0 ? t('weather.today') : formatWeekday(day.date, i18n.language)}
-          </span>
+          {index === 0 && wall ? (
+            <span className="font-semibold text-ink">
+              <span aria-hidden="true">{formatWeekday(day.date, i18n.language)}</span>
+              <span className="sr-only">{t('weather.today')}</span>
+            </span>
+          ) : (
+            <span className={`${wall ? '' : 'w-24'} text-ink-muted`}>
+              {index === 0 ? t('weather.today') : formatWeekday(day.date, i18n.language)}
+            </span>
+          )}
           <span className="tablet-short:sr-only">
             <WeatherSymbol
               condition={day.condition}
