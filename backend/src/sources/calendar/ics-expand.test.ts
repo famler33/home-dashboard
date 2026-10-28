@@ -12,7 +12,12 @@ const work = read('google-work.sample.ics');
 
 const now = new Date('2026-10-28T10:00:00Z');
 const timezone = 'Europe/Berlin';
-const options = { now, timezone, selfAddresses: [] as string[] };
+const options = {
+  now,
+  timezone,
+  selfAddresses: [] as string[],
+  timeBudgetMs: undefined as number | undefined,
+};
 const expand = (text: string, extra: Partial<typeof options> = {}) =>
   expandCalendar(text, { ...options, ...extra });
 const titles = (text: string, extra: Partial<typeof options> = {}) =>
@@ -200,4 +205,22 @@ describe('ics expansion', () => {
     expand(text);
     expect(Date.now() - started).toBeLessThan(3000);
   }, 20_000);
+
+  it('stops expanding when the time budget is used up and reports truncated', () => {
+    const series = (index: number) =>
+      `BEGIN:VEVENT\r\nUID:old${index}\r\nDTSTART:19900101T080000Z\r\nDTEND:19900101T090000Z\r\nRRULE:FREQ=DAILY\r\nSUMMARY:Alt ${index}\r\nEND:VEVENT\r\n`;
+    const text = `BEGIN:VCALENDAR\r\nVERSION:2.0\r\n${Array.from({ length: 3 }, (_, i) => series(i)).join('')}END:VCALENDAR\r\n`;
+    const started = Date.now();
+    const payload = expand(text, { timeBudgetMs: 5 });
+    expect(Date.now() - started).toBeLessThan(2500);
+    expect(payload.truncated).toBe(true);
+  });
+
+  it('keeps a long-running daily series inside the budget', () => {
+    const text =
+      'BEGIN:VCALENDAR\r\nVERSION:2.0\r\nBEGIN:VEVENT\r\nUID:one\r\nDTSTART:20240101T080000Z\r\nDTEND:20240101T090000Z\r\nRRULE:FREQ=DAILY\r\nSUMMARY:Täglich\r\nEND:VEVENT\r\nEND:VCALENDAR\r\n';
+    const payload = expand(text);
+    expect(payload.truncated).toBe(false);
+    expect(payload.events.length).toBeGreaterThan(5);
+  });
 });

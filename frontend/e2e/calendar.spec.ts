@@ -100,6 +100,23 @@ test.describe('calendar tile states', () => {
 
 // Covers: NFR-2, NFR-4, NFR-6, AC-6, AC-16, AC-17, AC-20
 test.describe('calendar tile layout', () => {
+  test('delivers no feed address or calendar credentials in the bundle', async ({ page }) => {
+    const scripts: string[] = [];
+    page.on('response', async (response) => {
+      if (response.url().endsWith('.js')) scripts.push(await response.text());
+    });
+    await open(page);
+    const bundle = scripts.join('\n');
+    expect(bundle.length).toBeGreaterThan(1000);
+    for (const needle of [
+      'icloud.com/published',
+      'calendar.google.com/calendar/ical',
+      'private-',
+    ]) {
+      expect(bundle.includes(needle), needle).toBe(false);
+    }
+  });
+
   for (const size of [
     { width: 1024, height: 750 },
     { width: 1180, height: 700 },

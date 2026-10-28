@@ -244,6 +244,7 @@ describe('startServer weather wiring', () => {
   });
 });
 
+// Covers: FR-7, FR-8, FR-9, NFR-3, AC-28, AC-29, AC-30, AC-31, AC-34 (calendar sources, calendar epic)
 describe('startServer calendar wiring', () => {
   const icsFamily = readFileSync(
     new URL('../test/fixtures/calendar/icloud-family.sample.ics', import.meta.url),
@@ -384,5 +385,34 @@ describe('startServer calendar wiring', () => {
         expect(response.status, `${method} ${path}`).toBeGreaterThanOrEqual(400);
       }
     }
+  });
+
+  it('logs only the source id and a reason when a feed is refused, never an address or feed text', async () => {
+    configure(calendarSettings(true), credentials());
+    const lines: string[] = [];
+    const write = process.stdout.write.bind(process.stdout);
+    process.stdout.write = ((chunk: string | Uint8Array) => {
+      lines.push(String(chunk));
+      return true;
+    }) as typeof process.stdout.write;
+    try {
+      server = await startServer(env(), {
+        calendarTransport: async () => {
+          throw new FeedRejected('private-address');
+        },
+        now: calendarNow,
+      });
+      await waitFor(async () => {
+        const value = await snapshot(server!.url);
+        return value.sources.every((entry) => entry.status === 'error') ? value : undefined;
+      });
+    } finally {
+      process.stdout.write = write;
+    }
+    const output = lines.join('');
+    expect(output).toContain('"reason":"private-address"');
+    expect(output).toContain('calendar-family');
+    expect(output).not.toContain('SENTINEL');
+    expect(output).not.toContain('icloud.com');
   });
 });
