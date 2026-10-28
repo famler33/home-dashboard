@@ -8,6 +8,8 @@ const MAX_UID = 100;
 const MAX_STEPS_PER_RULE = 20_000;
 const MAX_STEPS_PER_FEED = 100_000;
 const DAY_MS = 86_400_000;
+// eslint-disable-next-line no-control-regex
+const controlCharacters = /[\u0000-\u001f\u007f-\u009f]/g;
 
 export interface ExpandOptions {
   now: Date;
@@ -112,7 +114,7 @@ function toMs(time: ICAL.Time, timeZone: string): number {
 
 function cleanTitle(raw: string | undefined | null): string {
   return (raw ?? '')
-    .replace(/[\u0000-\u001f\u007f-\u009f]/g, ' ')
+    .replace(controlCharacters, ' ')
     .replace(/\s+/g, ' ')
     .trim()
     .slice(0, MAX_TITLE);

@@ -155,6 +155,7 @@ describe('ics expansion', () => {
 
   it('strips control characters and cuts titles at 120 characters', () => {
     const long = expand(family).events.find((event) => event.title.startsWith('Elternabend'));
+    // eslint-disable-next-line no-control-regex
     expect(long?.title).not.toMatch(/[\u0000-\u001f\u007f-\u009f]/);
     expect(long?.title.length).toBe(120);
   });
