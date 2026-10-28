@@ -298,3 +298,31 @@ describe('Tile heading and state texts', () => {
     expect(screen.getByText(de.weather.states.error.title)).toBeInTheDocument();
   });
 });
+
+// Covers: FR-13, AC-37 (fresh footer can be switched off, stale footer always shows)
+describe('Tile fresh footer', () => {
+  it('shows the update footer for fresh data by default', () => {
+    renderWithProviders(
+      <Tile definition={demoDefinition} index={0} />,
+      contextFixture(snapshotFixture({ sources: [sourceFixture({ ageSeconds: 100 })] })),
+    );
+    expect(screen.getByTestId('tile-footer')).toBeInTheDocument();
+  });
+
+  it('omits the footer for fresh data when the definition asks for it, but keeps it when stale', () => {
+    const definition: TileDefinition = { ...demoDefinition, freshFooter: false };
+    const fresh = renderWithProviders(
+      <Tile definition={definition} index={0} />,
+      contextFixture(snapshotFixture({ sources: [sourceFixture({ ageSeconds: 100 })] })),
+    );
+    expect(screen.queryByTestId('tile-footer')).toBeNull();
+    fresh.unmount();
+    renderWithProviders(
+      <Tile definition={definition} index={0} />,
+      contextFixture(
+        snapshotFixture({ sources: [sourceFixture({ status: 'stale', ageSeconds: 500 })] }),
+      ),
+    );
+    expect(screen.getByTestId('tile-footer')).toHaveTextContent('Veraltet');
+  });
+});

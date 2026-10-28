@@ -92,3 +92,30 @@ describe('tile registry', () => {
     expect(withSource).toEqual(['rep']);
   });
 });
+
+// Covers: FR-1, FR-17, AC-41 (weather gets the taller left cell)
+describe('weather tile area', () => {
+  it('gives the live weather tile and its placeholder four rows and the lists tile the remaining two', () => {
+    const area = (id: string) => tileRegistry.find((tile) => tile.id === id)!.tablet;
+    expect(area('weather')).toMatchObject({ col: 1, row: 1, colSpan: 5, rowSpan: 4 });
+    expect(area('weather-live')).toEqual(area('weather'));
+    expect(area('lists')).toMatchObject({ col: 1, row: 5, colSpan: 5, rowSpan: 2 });
+  });
+
+  it('replaces the weather placeholder when the weather source exists', () => {
+    const shown = visibleTiles(
+      tileRegistry,
+      snapshotFixture({ sources: [sourceFixture({ id: 'weather' })] }),
+    ).map((tile) => tile.id);
+    expect(shown).toContain('weather-live');
+    expect(shown).not.toContain('weather');
+  });
+
+  it('keeps the placeholder without a weather source', () => {
+    const shown = visibleTiles(tileRegistry, snapshotFixture({ sources: [] })).map(
+      (tile) => tile.id,
+    );
+    expect(shown).toContain('weather');
+    expect(shown).not.toContain('weather-live');
+  });
+});

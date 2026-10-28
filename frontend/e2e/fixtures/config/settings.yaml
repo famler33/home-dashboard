@@ -10,6 +10,8 @@ display:
 sources:
   demo:
     enabled: false
+  weather:
+    enabled: false
 backup:
   time: '03:00'
   retention: 3
