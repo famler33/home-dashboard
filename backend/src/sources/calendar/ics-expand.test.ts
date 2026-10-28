@@ -43,7 +43,7 @@ describe('ics expansion', () => {
 
   it('expands daily and weekly rules inside the window', () => {
     const events = expand(family).events;
-    expect(events.filter((event) => event.title.startsWith('Kita bringen'))).toHaveLength(6);
+    expect(events.filter((event) => event.title.startsWith('Kita bringen'))).toHaveLength(7);
     expect(events.filter((event) => event.title === 'Turnen')).toHaveLength(1);
     const weekly = expand(work).events.filter((event) => event.title === 'Team Sync');
     expect(weekly.map((event) => event.start)).toEqual([
@@ -63,7 +63,7 @@ describe('ics expansion', () => {
     const moved = expand(family).events.find((event) => event.title.includes('später'));
     expect(moved?.start).toBe('2026-10-29T08:00:00.000Z');
     expect(moved?.end).toBe('2026-10-29T08:30:00.000Z');
-    expect(titles(family).filter((title) => title === 'Kita bringen – Alex')).toHaveLength(5);
+    expect(titles(family).filter((title) => title === 'Kita bringen – Alex')).toHaveLength(6);
   });
 
   it('stops a runaway rule at the iteration cap and sets truncated', () => {
