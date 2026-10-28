@@ -30,3 +30,14 @@ export function formatWeekday(date: string, locale: string): string {
   // Some ICU versions drop the abbreviation dot ("Mi"), others keep it ("Mi.").
   return locale === 'de' && !short.endsWith('.') ? `${short}.` : short;
 }
+
+/** German relative age such as "vor 13 Min." for an age in seconds. */
+export function formatAge(seconds: number, locale: string): string {
+  const intlLocale = locale === 'de' ? 'de-DE' : locale;
+  const rounded = Math.max(0, Math.floor(seconds));
+  const formatter = new Intl.RelativeTimeFormat(intlLocale, { numeric: 'always', style: 'short' });
+  if (rounded < 60) return formatter.format(-rounded, 'second');
+  if (rounded < 3600) return formatter.format(-Math.floor(rounded / 60), 'minute');
+  if (rounded < 86400) return formatter.format(-Math.floor(rounded / 3600), 'hour');
+  return formatter.format(-Math.floor(rounded / 86400), 'day');
+}

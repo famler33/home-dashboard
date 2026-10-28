@@ -1,7 +1,8 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { decodeFrames } from './radar-render';
 import { installCanvasMock, type CanvasMock } from './canvas-mock';
+import { renderWithProviders } from '../../test-utils';
 import { RadarCanvas } from './RadarCanvas';
 import { radarDocumentFixture } from './test-data';
 
@@ -18,7 +19,9 @@ afterEach(() => {
 });
 
 const show = (props: Partial<Parameters<typeof RadarCanvas>[0]> = {}) =>
-  render(<RadarCanvas doc={doc} frames={frames} frameIndex={1} night={false} {...props} />);
+  renderWithProviders(
+    <RadarCanvas doc={doc} frames={frames} frameIndex={1} night={false} {...props} />,
+  );
 
 // Covers: FR-7, FR-8, AC-16, AC-19, NFR-2, NFR-4
 describe('RadarCanvas', () => {

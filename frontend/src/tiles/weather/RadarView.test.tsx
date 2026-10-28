@@ -1,4 +1,4 @@
-import { act, render, screen, waitFor } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import { I18nextProvider } from 'react-i18next';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { de } from '../../i18n/de';
@@ -41,19 +41,21 @@ function show(props: Partial<Parameters<typeof RadarView>[0]> = {}) {
   );
 }
 
-const flush = () =>
-  act(async () => {
-    await vi.advanceTimersByTimeAsync(0);
-  });
+const flush = async () => {
+  // fake timers are active, so waitFor cannot poll: let the pending promises settle explicitly
+  for (let round = 0; round < 5; round += 1) {
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(0);
+    });
+  }
+};
 
 // Covers: FR-7, AC-16, AC-17, AC-18, AC-19, AC-20, AC-21, AC-37
 describe('RadarView', () => {
   it('shows the map, the credit and the legend once the document is loaded', async () => {
     show();
     await flush();
-    await waitFor(() =>
-      expect(screen.getByRole('img', { name: de.weather.radar.canvas })).toBeInTheDocument(),
-    );
+    expect(screen.getByRole('img', { name: de.weather.radar.canvas })).toBeInTheDocument();
     expect(screen.getByText(de.weather.credit.radar)).toBeInTheDocument();
     expect(screen.getByLabelText(de.weather.radar.legend)).toBeInTheDocument();
   });
@@ -61,7 +63,7 @@ describe('RadarView', () => {
   it('labels the current frame with its time and observed or forecast as text', async () => {
     show();
     await flush();
-    await waitFor(() => expect(screen.getByTestId('frame-label')).toBeInTheDocument());
+    expect(screen.getByTestId('frame-label')).toBeInTheDocument();
     // frame 2 is the newest observed frame (13:40Z = 14:40 Berlin)
     expect(screen.getByTestId('frame-label')).toHaveTextContent('14:40 Uhr · Beobachtung');
   });
@@ -69,7 +71,7 @@ describe('RadarView', () => {
   it('steps through the frames and labels forecast frames as Vorhersage', async () => {
     show();
     await flush();
-    await waitFor(() => expect(screen.getByTestId('frame-label')).toBeInTheDocument());
+    expect(screen.getByTestId('frame-label')).toBeInTheDocument();
     await act(async () => {
       await vi.advanceTimersByTimeAsync(450);
     });
@@ -80,7 +82,7 @@ describe('RadarView', () => {
     mockMatchMedia((query) => query.includes('prefers-reduced-motion'));
     show();
     await flush();
-    await waitFor(() => expect(screen.getByTestId('frame-label')).toBeInTheDocument());
+    expect(screen.getByTestId('frame-label')).toBeInTheDocument();
     const before = screen.getByTestId('frame-label').textContent;
     await act(async () => {
       await vi.advanceTimersByTimeAsync(10_000);
@@ -126,7 +128,7 @@ describe('RadarView', () => {
       fetchImpl: vi.fn(async () => new Response('{}', { status: 404 })) as unknown as typeof fetch,
     });
     await flush();
-    await waitFor(() => expect(screen.getByText(de.weather.radar.unavailable)).toBeInTheDocument());
+    expect(screen.getByText(de.weather.radar.unavailable)).toBeInTheDocument();
   });
 
   it('labels a stale radar as Veraltet with its age and keeps showing the last picture', async () => {
@@ -139,7 +141,7 @@ describe('RadarView', () => {
       radarAgeSeconds: 780,
     });
     await flush();
-    await waitFor(() => expect(screen.getByTestId('frame-label')).toBeInTheDocument());
+    expect(screen.getByTestId('frame-label')).toBeInTheDocument();
     expect(screen.getByText(/Radar veraltet/)).toHaveTextContent('vor 13 Min.');
   });
 
