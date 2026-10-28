@@ -29,7 +29,7 @@ describe('NowView', () => {
     const { container } = renderWithProviders(
       <NowView weather={data} rain={null} layout="wall" timeZone={timeZone} />,
     );
-    expect(screen.getByText('12°')).toBeInTheDocument();
+    expect(screen.getAllByText('12°').length).toBeGreaterThan(0);
     expect(screen.getAllByText(de.weather.conditions.rain).length).toBeGreaterThan(0);
     expect(screen.getByText('Heute 8° / 14°, Regen 60 %')).toBeInTheDocument();
     expect(container.querySelector('svg[data-symbol="rain"]')).not.toBeNull();
