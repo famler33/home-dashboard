@@ -2,11 +2,11 @@ import { describe, expect, it } from 'vitest';
 import { fitRows } from './fit-rows';
 
 const ones = (count: number) => Array.from({ length: count }, () => 1);
-const day = (date: string, rows: number, isToday = false) => ({
+const day = (date: string, rows: number, partial = false) => ({
   date,
   head: 1,
   rows: ones(rows),
-  isToday,
+  partial,
 });
 const plan = (kita: number, days: ReturnType<typeof day>[]) => ({
   kita: ones(kita),
@@ -83,12 +83,24 @@ describe('fitRows', () => {
         kita: [],
         kitaHead: 0,
         more: 10,
-        days: [{ date: 'a', head: 20, rows: [40, 30, 40], isToday: true }],
+        days: [{ date: 'a', head: 20, rows: [40, 30, 40], partial: true }],
       },
       100,
     );
     // 10 for the more row, 20 heading, 40 + 30 = 70 -> exactly 100; the third row is counted in more
     expect(result.days[0]).toEqual({ date: 'a', shown: 2, collapsed: false, hidden: false });
     expect(result.more).toBe(1);
+  });
+
+  it('fills a partial day with as many rows as fit instead of collapsing it', () => {
+    // today 1+2 rows, tomorrow 1+4 rows (partial), budget 8: more 1, today 3, tomorrow gets heading + 3
+    const result = fitRows(plan(0, [day('a', 2, true), day('b', 4, true)]), 8);
+    expect(result.days[1]).toEqual({ date: 'b', shown: 3, collapsed: false, hidden: false });
+    expect(result.more).toBe(1);
+  });
+
+  it('still collapses days that are not partial', () => {
+    const result = fitRows(plan(0, [day('a', 2, true), day('b', 4)]), 6);
+    expect(result.days[1]).toEqual({ date: 'b', shown: 0, collapsed: true, hidden: false });
   });
 });
