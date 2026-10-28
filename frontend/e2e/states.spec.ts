@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { demoSource, mockSnapshot, screenshotDir, snapshotBody } from './helpers';
+import { demoSource, mockSnapshot, screenshotDir, snapshotBody, tileFitProblems } from './helpers';
 
 // The demo source replaces the news placeholder, so its tile can show every state.
 const demoTile = (page: Page) => page.getByRole('region', { name: 'Demo' });
@@ -37,6 +37,27 @@ test.describe('tile states', () => {
       expect(text.length).toBeGreaterThan('Demo'.length);
       await page.waitForTimeout(1500);
       await page.screenshot({ path: `${screenshotDir}/state-${name}.png` });
+    });
+  }
+
+  for (const size of [
+    { width: 1024, height: 750 },
+    { width: 1180, height: 700 },
+    { width: 1280, height: 720 },
+    { width: 1024, height: 768 },
+  ]) {
+    test(`fits every state inside its card at ${size.width}x${size.height}`, async ({ page }) => {
+      await page.setViewportSize(size);
+      for (const [, source] of scenarios) {
+        await mockSnapshot(page, snapshotBody({ sources: [source] }));
+        await page.goto('/');
+        await expect(demoTile(page)).toBeVisible();
+        await page.waitForTimeout(1300);
+        expect(
+          await tileFitProblems(page),
+          `${source.status} ${JSON.stringify(source.data)}`,
+        ).toEqual([]);
+      }
     });
   }
 

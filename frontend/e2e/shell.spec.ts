@@ -1,5 +1,11 @@
 import { expect, test } from '@playwright/test';
-import { mockSnapshot, screenshotDir, smallestFontSize, snapshotBody } from './helpers';
+import {
+  mockSnapshot,
+  screenshotDir,
+  smallestFontSize,
+  snapshotBody,
+  tileFitProblems,
+} from './helpers';
 
 // CSS pixel sizes: a physical 2048x1536 iPad reports 1024x768, a 10" Android tablet 1280x800.
 const tabletViewports = [
@@ -9,6 +15,8 @@ const tabletViewports = [
   { width: 1024, height: 768, label: '4x3-ipad-css' },
   { width: 1180, height: 820, label: 'ipad-air-css' },
   { width: 1280, height: 720, label: '16x9' },
+  { width: 1024, height: 750, label: 'smallest-tablet' },
+  { width: 1180, height: 700, label: 'low-wide-tablet' },
 ];
 
 // Covers: FR-1, FR-3, NFR-8, AC-1, AC-2, AC-37
@@ -65,45 +73,7 @@ for (const viewport of tabletViewports) {
     test('fits every tile content inside its card without clipping or overlap', async ({
       page,
     }) => {
-      const problems = await page.getByRole('region').evaluateAll((sections) => {
-        const found: string[] = [];
-        for (const section of sections) {
-          const box = section.getBoundingClientRect();
-          const heading = section.querySelector('h2')?.getBoundingClientRect();
-          for (const element of Array.from(section.querySelectorAll('*'))) {
-            if (element.closest('.sr-only')) continue;
-            const r = element.getBoundingClientRect();
-            if (r.width === 0 || r.height === 0) continue;
-            const label = `${section.getAttribute('aria-labelledby')}:${element.tagName}`;
-            if (
-              r.bottom > box.bottom + 1 ||
-              r.top < box.top - 1 ||
-              r.right > box.right + 1 ||
-              r.left < box.left - 1
-            ) {
-              found.push(`${label} outside card`);
-            }
-            if (
-              heading &&
-              element.tagName !== 'H2' &&
-              !element.contains(section.querySelector('h2')) &&
-              element.closest('h2') === null
-            ) {
-              if (
-                r.top < heading.bottom - 1 &&
-                r.bottom > heading.top + 1 &&
-                r.left < heading.right &&
-                r.right > heading.left
-              ) {
-                found.push(`${label} overlaps the heading`);
-              }
-            }
-          }
-          if (section.scrollHeight > section.clientHeight + 1) found.push(`${section.id} scrolls`);
-        }
-        return found;
-      });
-      expect(problems).toEqual([]);
+      expect(await tileFitProblems(page)).toEqual([]);
     });
 
     test('has no text node below 28px', async ({ page }) => {

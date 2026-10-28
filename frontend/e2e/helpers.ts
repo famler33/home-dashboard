@@ -54,3 +54,44 @@ export async function smallestFontSize(page: Page): Promise<number> {
     return smallest;
   });
 }
+
+/** Problems where tile content is clipped, leaves its card or overlaps the card heading. */
+export async function tileFitProblems(page: Page): Promise<string[]> {
+  return page.getByRole('region').evaluateAll((sections) => {
+    const found: string[] = [];
+    for (const section of sections) {
+      const name = section.querySelector('h2')?.textContent ?? 'tile';
+      const box = section.getBoundingClientRect();
+      const heading = section.querySelector('h2')?.getBoundingClientRect();
+      if (section.scrollHeight > section.clientHeight + 1) found.push(`${name}: card scrolls`);
+      for (const clipped of Array.from(section.querySelectorAll('.overflow-hidden'))) {
+        if (clipped.scrollHeight > clipped.clientHeight + 1) {
+          found.push(`${name}: body clips ${clipped.scrollHeight - clipped.clientHeight}px`);
+        }
+      }
+      for (const element of Array.from(section.querySelectorAll('*'))) {
+        if (element.closest('.sr-only') || element.closest('h2')) continue;
+        const r = element.getBoundingClientRect();
+        if (r.width === 0 || r.height === 0) continue;
+        if (
+          r.bottom > box.bottom + 1 ||
+          r.top < box.top - 1 ||
+          r.right > box.right + 1 ||
+          r.left < box.left - 1
+        ) {
+          found.push(`${name}: ${element.tagName} outside card`);
+        }
+        if (
+          heading &&
+          r.top < heading.bottom - 1 &&
+          r.bottom > heading.top + 1 &&
+          r.left < heading.right &&
+          r.right > heading.left
+        ) {
+          found.push(`${name}: ${element.tagName} overlaps the heading`);
+        }
+      }
+    }
+    return found;
+  });
+}
