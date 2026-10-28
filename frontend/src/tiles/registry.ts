@@ -9,7 +9,7 @@ export const tileRegistry: readonly TileDefinition[] = [
   {
     id: 'lists',
     titleKey: 'tiles.lists',
-    tablet: { col: 1, row: 4, colSpan: 5, rowSpan: 3 },
+    tablet: { col: 1, row: 5, colSpan: 5, rowSpan: 2 },
     phoneOrder: 0,
     Component: PlaceholderTile,
   },
@@ -23,7 +23,7 @@ export const tileRegistry: readonly TileDefinition[] = [
   {
     id: 'weather',
     titleKey: 'tiles.weather',
-    tablet: { col: 1, row: 1, colSpan: 5, rowSpan: 3 },
+    tablet: { col: 1, row: 1, colSpan: 5, rowSpan: 4 },
     phoneOrder: 2,
     Component: PlaceholderTile,
   },
@@ -33,7 +33,7 @@ export const tileRegistry: readonly TileDefinition[] = [
     sourceId: 'weather',
     requiresSource: true,
     replaces: 'weather',
-    tablet: { col: 1, row: 1, colSpan: 5, rowSpan: 3 },
+    tablet: { col: 1, row: 1, colSpan: 5, rowSpan: 4 },
     phoneOrder: 2,
     heading: (data, t) =>
       isWeatherPayload(data) ? t('weather.heading', { location: data.location.name }) : null,
@@ -44,6 +44,7 @@ export const tileRegistry: readonly TileDefinition[] = [
       },
       error: { titleKey: 'weather.states.error.title', hintKey: 'weather.states.error.hint' },
     },
+    freshFooter: false,
     isEmpty: (data) => !isWeatherPayload(data),
     Component: WeatherTile,
   },

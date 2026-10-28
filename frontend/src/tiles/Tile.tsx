@@ -48,6 +48,7 @@ function ConnectedTile({ definition, index }: Props) {
       ageSeconds={age}
       index={index}
       stateTexts={definition.stateTexts}
+      freshFooter={definition.freshFooter !== false}
     >
       <Component data={source?.data ?? null} />
     </TileFrame>

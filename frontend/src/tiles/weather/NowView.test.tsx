@@ -164,6 +164,23 @@ describe('NowView', () => {
     expect(screen.queryByTestId('rain-line')).toBeNull();
   });
 
+  it('hides the hourly strip on short screens while a warning is active, and otherwise keeps it', () => {
+    const { rerender } = renderWithProviders(
+      <NowView weather={weather()} rain={null} layout="wall" timeZone={timeZone} alertActive />,
+    );
+    expect(screen.getByTestId('hour-strip').className).toContain('tablet-short:hidden');
+    rerender(
+      <NowView
+        weather={weather()}
+        rain={null}
+        layout="wall"
+        timeZone={timeZone}
+        alertActive={false}
+      />,
+    );
+    expect(screen.getByTestId('hour-strip').className).not.toContain('tablet-short:hidden');
+  });
+
   it('uses degree signs and no Fahrenheit', () => {
     renderWithProviders(
       <NowView weather={weather()} rain={null} layout="wall" timeZone={timeZone} />,

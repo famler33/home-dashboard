@@ -190,8 +190,8 @@ function WallViews({
           );
         })}
       </div>
-      <div className="flex items-center justify-between gap-2">
-        {viewIds[stage.current] === 'rain' ? <span /> : <Credits variant="short" />}
+      {viewIds[stage.current] === 'rain' ? null : <Credits variant="short" />}
+      <div className="absolute right-3 top-1 z-10">
         <ViewIndicators index={index} onSelect={rotation.goTo} />
       </div>
     </div>

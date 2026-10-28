@@ -25,6 +25,8 @@ export interface TileDefinition {
   heading?: (data: unknown, t: TFunction) => string | null;
   /** Replaces the generic texts of the never-loaded and error states. */
   stateTexts?: Partial<Record<'never-loaded' | 'error', StateTextKeys>>;
+  /** Set to false to show the update footer only while the data is stale. */
+  freshFooter?: boolean;
   /** Backend source whose freshness this tile shows. */
   sourceId?: string | undefined;
   /** Hide the tile while its source is absent from the snapshot. */

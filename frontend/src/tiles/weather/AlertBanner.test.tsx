@@ -5,7 +5,7 @@ import { de } from '../../i18n/de';
 import { i18n } from '../../i18n';
 import type { SourceSnapshot } from '../../api/types';
 import { sourceFixture } from '../../test-fixtures';
-import { AlertBanner } from './AlertBanner';
+import { AlertBanner, hasActiveAlert } from './AlertBanner';
 import { weatherNow, weatherSource } from './test-data';
 import type { AlertsPayload } from './types';
 
@@ -135,5 +135,17 @@ describe('AlertBanner', () => {
   it('works with the golden alerts entry', () => {
     show({ ...weatherSource('weather-alerts') });
     expect(screen.getByRole('group')).toBeInTheDocument();
+  });
+});
+
+describe('hasActiveAlert', () => {
+  it('is true for a fresh source with an unexpired alert and false otherwise', () => {
+    expect(hasActiveAlert(entry([alert()]), now)).toBe(true);
+    expect(hasActiveAlert(entry([alert({ expires: '2026-10-28T13:00:00.000Z' })]), now)).toBe(
+      false,
+    );
+    expect(hasActiveAlert(entry([]), now)).toBe(false);
+    expect(hasActiveAlert(entry([alert()], 'stale'), now)).toBe(false);
+    expect(hasActiveAlert(undefined, now)).toBe(false);
   });
 });

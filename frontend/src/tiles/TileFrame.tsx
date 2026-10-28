@@ -14,6 +14,8 @@ interface Props {
   ageSeconds: number | null;
   index: number;
   stateTexts?: Partial<Record<'never-loaded' | 'error', StateTextKeys>> | undefined;
+  /** Show the update footer for fresh data too (default); stale data always shows it. */
+  freshFooter?: boolean;
   children?: ReactNode;
 }
 
@@ -31,10 +33,20 @@ function useLastUpdated(ageSeconds: number | null): string | null {
   return t('tile.lastUpdated', { relative });
 }
 
-export function TileFrame({ title, status, ageSeconds, index, stateTexts, children }: Props) {
+export function TileFrame({
+  title,
+  status,
+  ageSeconds,
+  index,
+  stateTexts,
+  freshFooter = true,
+  children,
+}: Props) {
   const { t } = useTranslation();
   const headingId = useId();
-  const lastUpdated = useLastUpdated(status === 'fresh' || status === 'stale' ? ageSeconds : null);
+  const lastUpdated = useLastUpdated(
+    status === 'stale' || (status === 'fresh' && freshFooter) ? ageSeconds : null,
+  );
   const showsContent = status === 'fresh' || status === 'stale';
 
   return (
@@ -42,9 +54,9 @@ export function TileFrame({ title, status, ageSeconds, index, stateTexts, childr
       aria-labelledby={headingId}
       data-status={status}
       style={{ '--i': index } as CSSProperties}
-      className="animate-tile-in flex h-full min-h-0 flex-col gap-3 overflow-hidden rounded-3xl bg-surface-raised p-5 shadow-sm tablet-short:gap-2 tablet-short:p-4"
+      className="animate-tile-in relative flex h-full min-h-0 flex-col gap-3 overflow-hidden rounded-3xl bg-surface-raised p-5 shadow-sm tablet-short:gap-2 tablet-short:p-4"
     >
-      <h2 id={headingId} className="text-caption font-medium text-ink-muted">
+      <h2 id={headingId} className="self-start text-caption font-medium text-ink-muted">
         {title}
       </h2>
       <div className="min-h-0 flex-1 overflow-hidden">
