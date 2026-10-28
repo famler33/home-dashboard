@@ -99,6 +99,18 @@ Additional checks:
 - A failing test, format, lint, type-check, or build gate blocks every affected
   acceptance criterion.
 
+### Live checks of external services
+
+Contract tests use recorded fixtures with a golden snapshot (`UPDATE_FIXTURES=1` regenerates it). Real
+service shapes are checked manually and never in a gate: `backend/scripts/weather-live-check.mjs` prints
+only shapes and counts. Verification marks alignment against reference imagery, real-tablet behaviour and
+licence review as manual-only items instead of PASS.
+
+### Load-induced flakiness
+
+On a loaded machine browser and container tests can stall without a real failure. A failure counts only
+when it reproduces in isolation; run Playwright with a reduced worker count in that case.
+
 ### Browser click-through and UX verification
 
 User-facing epics require an explicit browser click-through in addition to automated

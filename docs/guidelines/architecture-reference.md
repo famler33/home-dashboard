@@ -55,6 +55,28 @@ The backend serves the built SPA and the API from a single container and a singl
 no CORS and no second web server. Hashed assets are immutable, the entry page is `no-cache`, API
 responses are `no-store`.
 
+### Cacheable API exceptions and the tile proxy
+
+Every `/api/` response is `no-store` except two explicit routes listed in `src/cache-policy.ts`: the
+weather radar document (`no-cache` with an `ETag`, so an unchanged document costs only a 304) and the
+map tile proxy (`private, max-age=86400`). A test asserts that every other route stays `no-store`.
+The tile proxy exists so the display never contacts a third party: it serves only tiles listed in the
+current radar document, validates content type and PNG header, and keeps a small disk cache in `data/tiles`
+(64 files, 8 MiB, 512 KiB per tile). Large binary-like data therefore gets its own versioned route
+instead of living in the snapshot, which only carries a version id.
+
+### Upstream egress
+
+Outbound requests go to fixed hosts held as constants in code (never from configuration), with the home
+location rounded to about 1 km, an identifying user agent, no cookies, no referrer, no redirects,
+response size limits and schema validation. Sources of one tile that can fail independently are separate
+sources (weather has three), and `sources.<name>.enabled` switches a tile's sources together.
+
+### Time-dependent text is computed in the frontend
+
+Statements that depend on the current time (the rain statement "Regen ab 14:30") are computed in the
+frontend from time series delivered by the backend and the server-based clock, not stored in the snapshot.
+
 ### Configuration
 
 Settings and credentials are two YAML files on the NAS (`settings.yaml` required,

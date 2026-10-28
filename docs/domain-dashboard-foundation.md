@@ -1,7 +1,7 @@
 # Domain: Dashboard Foundation
 
 > **Last updated:** 2026-10-28
-> **Related epics:** Dashboard Foundation (`dashboard-foundation`)
+> **Related epics:** Dashboard Foundation (`dashboard-foundation`), Weather (`weather`)
 
 ## 1. Overview
 
@@ -76,7 +76,8 @@ logs the result. A failed backup is logged and never stops the service.
 
 ## 4. Interfaces
 
-All endpoints are versioned under `/api/v1/` and answer with `Cache-Control: no-store`.
+All endpoints are versioned under `/api/v1/` and answer with `Cache-Control: no-store`, except the two
+cacheable weather routes described in [domain-weather](domain-weather.md).
 
 | Endpoint | Purpose |
 | -------- | ------- |
@@ -132,3 +133,4 @@ and both are checked against a backend-owned example file.
 | Date | Epic | Change |
 |------|------|--------|
 | 2026-10-28 | Dashboard Foundation (`dashboard-foundation`) | Wall and phone layout, tile framework and freshness states, polling and self-recovery, day/night schedule, backend gateway with scheduler and SQLite cache, configuration files, nightly backup, container image, compose project, deploy script and runbook. |
+| 2026-10-28 | Weather (`weather`) | First tile on the framework: three sources, a shell context for layout and theme, a short-screen variant and two explicitly cacheable routes. |

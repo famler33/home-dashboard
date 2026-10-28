@@ -37,6 +37,12 @@ in `test/fixtures/`).
 - A source implements `Source` (`id`, `intervalSeconds`, `staleAfterSeconds` = twice the interval
   by convention, `timeoutMs`, `fetch(signal)`), maps the external payload to an internal type
   before returning it and is added to the list in `startServer`. It adds no scheduler or store code.
+- A tile with several independent upstream parts registers one source per part, in its own folder under
+  `src/sources/<tile>/` (shared `http` helper for limits, user agent and rounding, TypeBox payload types,
+  one file per source). Data too large for the snapshot goes into its own store module and a versioned
+  route; cacheable routes are listed explicitly in `src/cache-policy.ts`.
+- `startServer(env, { fetchImpl, now })` accepts overrides so server tests run against fake upstreams without
+  network access; fixtures for upstream responses live in `test/fixtures/` next to a golden payload.
 
 ## API Endpoints & Versioning
 

@@ -38,8 +38,21 @@ assets: calendar data (including work calendars) and API/calendar credentials.
 
 - `Cache-Control: no-store` on every `/api/` response; the entry page and manifest are `no-cache`;
   only hashed assets are cached. No API keys or credentials in the bundle (checked by a test).
+- Two API routes are deliberately cacheable (radar document: `no-cache` with `ETag`; map tiles: `private`,
+  one day); all other responses stay `no-store`, enforced by a test.
 - Content security policy limited to the own origin (inline style attributes only), `nosniff`,
   `no-referrer`, `frame-ancestors 'none'`, no CORS. No third-party requests, fonts or analytics.
+
+## Outbound Requests
+
+- Only the backend calls external services, to a fixed list of hosts held as constants in code
+  (weather: `api.open-meteo.com`, `api.brightsky.dev`, `tile.openstreetmap.org`). Redirects are refused,
+  no cookies or referrer are sent, responses are size-limited and schema-validated, and URLs and upstream
+  text are never logged.
+- Location sent upstream is rounded to two decimals (about 1 km).
+- The map tile proxy serves only integer tile coordinates on the allow-list taken from the current radar
+  document, checks content type and PNG magic bytes and caps its disk cache (64 files, 8 MiB, 512 KiB per tile).
+- Services that need no key are preferred; a service that would need a key goes into `credentials.yaml`.
 
 ## Secrets
 

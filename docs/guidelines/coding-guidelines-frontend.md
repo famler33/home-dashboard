@@ -63,10 +63,22 @@ after every epic.
   A comment next to each test group lists the covered requirement identifiers.
 - ESLint; Prettier in check mode for gates. Typescript `strict` with `noUncheckedIndexedAccess`.
 
+## Tile Patterns
+
+- Tiles read layout and theme from `ShellContext` instead of measuring the screen, and use the
+  `tablet-short` variant for compact content. Views mount only while active (plus the outgoing one during a
+  fade) and start no timers or fetches while inactive.
+- Time-dependent values derive from the server-based clock passed down from the snapshot, not from
+  `Date.now()` in render; timers live in hooks with cleanup, and tests drive them with fake timers and explicit
+  flushes. Canvas drawing takes raw data and is tested with a canvas mock.
+- The strict react-hooks lint rules apply: no state set in effects for derived values, no impure calls in render.
+
 ## File Structure
 
 `src/main.tsx`, `src/App.tsx`; `src/api/` (typed client, snapshot types); `src/snapshot/`
 (provider, freshness, version guard); `src/shell/` (layout, clock, theme, drift, kiosk hooks);
-`src/tiles/` (frame, states, boundary, registry, one folder per tile with content); `src/i18n/`;
+`src/tiles/` (frame, states, boundary, registry, one folder per tile with content; a tile folder holds
+types and guards for its payload, pure logic modules with unit tests, view components, hooks for timers,
+gestures and fetches, and shared test data); `src/i18n/`;
 `src/styles/` (tokens, CSS); `e2e/` (specs and helpers). Naming: PascalCase `.tsx` components,
 camelCase hooks and utilities (`useX.ts`), tests `<file>.test.ts(x)`.

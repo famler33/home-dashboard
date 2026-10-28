@@ -38,8 +38,15 @@ in the home network for lists.
   (a 2048 x 1536 iPad reports 1024 x 768). Smaller screens and portrait use the scrollable phone
   layout. It is four tiles on a 12 x 6 grid: weather and lists on the left, calendar and news on
   the right. The phone layout puts the lists first.
-- Tile content never overlaps its heading or leaves its card; on screens up to 850 px high the
-  explanatory hints in tile states become screen-reader-only and spacing shrinks.
+- Tile content never overlaps its heading or leaves its card; on screens up to 850 px high (the
+  `tablet-short` variant) the explanatory hints in tile states become screen-reader-only, spacing shrinks and
+  tiles may compact their content (the weather tile keeps symbols and the location name for screen readers
+  and drops secondary lines while a warning is shown). Taller screens show the full content.
+- A tile with several views (weather) rotates calmly on the wall, tells the active view with indicators
+  (at least 56 px touch targets, not colour alone), supports tap, swipe and direct selection, pauses the
+  rotation for 60 s after input and stops it while its data is stale. The phone shows all parts at once.
+- Tile credits and licence notices stay visible on the tile; map overlays never cover the data, so credits
+  and legends sit beside or below the map except on short screens.
 
 ## Feedback & error states
 
@@ -55,6 +62,8 @@ in the home network for lists.
 
 - Distinctive, polished, minimalist design with purposeful animation; calm rather than flashy:
   staggered tile entrance, a slow ambient background and a rolling clock. No parallax or particles.
+- Ambient symbol animations (weather) last at least 6 s per cycle; view changes use one shared fade
+  (150 ms under "reduce motion"); canvas loops show one still frame under "reduce motion".
 - Animate transform/opacity only. With "reduce motion" the entrance becomes a 150 ms fade, the
   ambient background stops and the clock swaps digits without movement.
 - Burn-in protection: the shell shifts through eight positions of at most 8 px every 5 minutes (half

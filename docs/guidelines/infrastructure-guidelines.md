@@ -33,12 +33,18 @@ file after every epic.
   atomic rename, newest N copies kept, database only); the NAS's own backup tools pick that folder
   up. Restore is a documented manual procedure (stop, copy, remove the WAL files, start).
 
+## Tile cache
+
+- The map tile proxy writes to `data/tiles` inside the existing data bind mount (no extra volume). It is
+  size-capped (64 files, 8 MiB) and may be deleted at any time; it is not part of the backup.
+
 ## Networking
 
 - Reachable only inside the home network; no router port forwarding. The NAS has a DHCP reservation,
   the router a local DNS entry (`dashboard.home`), the port is published on the NAS LAN address
   (default 8080, plain HTTP; the Wake Lock API therefore is not available, see the UX guidelines).
-  No reverse proxy.
+  No reverse proxy. The container needs outbound HTTPS to the hosts of enabled sources (weather: Open-Meteo,
+  Bright Sky, OpenStreetMap tiles); the runbook lists them.
 
 ## Secrets
 
