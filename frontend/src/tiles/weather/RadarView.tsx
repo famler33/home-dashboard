@@ -88,26 +88,28 @@ export function RadarView({
     frame?.kind === 'forecast' ? t('weather.radar.forecast') : t('weather.radar.observed');
 
   return (
-    <div className={`relative ${frameClass}`}>
-      <RadarCanvas doc={doc} frames={frames} frameIndex={index} night={night} />
-      {frame && (
-        <p
-          data-testid="frame-label"
-          className="absolute left-2 top-2 rounded-full bg-surface-raised/85 px-3 text-caption"
-        >
-          {t('weather.radar.frame', { time: formatClock(frame.time, timeZone), kind: kindLabel })}
-        </p>
-      )}
-      {radar.status === 'stale' && (
-        <p className="absolute right-2 top-2 rounded-full bg-surface-raised/85 px-3 text-caption text-warn">
-          {`${t('weather.radar.stale')} · ${formatAge(radarAgeSeconds ?? radar.ageSeconds ?? 0, i18n.language)}`}
-        </p>
-      )}
-      <div className="absolute inset-x-2 bottom-1 flex items-end justify-between gap-2">
+    <div className={`relative flex flex-col gap-1 ${frameClass}`}>
+      <div className="relative min-h-0 flex-1">
+        <RadarCanvas doc={doc} frames={frames} frameIndex={index} night={night} />
+        {frame && (
+          <p
+            data-testid="frame-label"
+            className="absolute left-2 top-2 rounded-full bg-surface-raised/85 px-3 text-caption"
+          >
+            {t('weather.radar.frame', { time: formatClock(frame.time, timeZone), kind: kindLabel })}
+          </p>
+        )}
+        {radar.status === 'stale' && (
+          <p className="absolute right-2 top-2 rounded-full bg-surface-raised/85 px-3 text-caption text-warn">
+            {`${t('weather.radar.stale')} · ${formatAge(radarAgeSeconds ?? radar.ageSeconds ?? 0, i18n.language)}`}
+          </p>
+        )}
+      </div>
+      <div className="flex items-center justify-between gap-3 tablet-short:absolute tablet-short:inset-x-2 tablet-short:bottom-1 tablet-short:items-end">
         <div
           aria-label={t('weather.radar.legend')}
           role="img"
-          className="flex h-3 w-24 overflow-hidden rounded-full"
+          className="flex h-3 w-24 shrink-0 overflow-hidden rounded-full"
         >
           {intensityLegend.map((entry) => (
             <span
@@ -117,7 +119,7 @@ export function RadarView({
             />
           ))}
         </div>
-        <div className="rounded-full bg-surface-raised/85 px-3">
+        <div className="text-right tablet-short:rounded-full tablet-short:bg-surface-raised/85 tablet-short:px-3">
           <Credits variant="radar" />
         </div>
       </div>

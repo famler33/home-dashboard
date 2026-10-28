@@ -8,7 +8,7 @@ export function PlaceholderTile() {
       <Hourglass aria-hidden="true" className="h-[1.3em] w-[1.3em] shrink-0" />
       <div className="flex min-w-0 flex-col gap-1">
         <p className="whitespace-nowrap text-title text-ink">{t('placeholder.title')}</p>
-        <p className="text-caption tablet-short:sr-only">{t('placeholder.hint')}</p>
+        <p className="text-caption tablet:truncate tablet-short:sr-only">{t('placeholder.hint')}</p>
       </div>
     </div>
   );

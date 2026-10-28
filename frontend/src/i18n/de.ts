@@ -104,7 +104,7 @@ export const de = {
     credit: {
       short: 'Open-Meteo · DWD · OSM',
       full: 'Wetter: Open-Meteo.com (CC BY 4.0) · Radar und Warnungen: Deutscher Wetterdienst (über Bright Sky) · Karte: © OpenStreetMap-Mitwirkende',
-      radar: 'Radar: Deutscher Wetterdienst · Karte: © OpenStreetMap-Mitwirkende',
+      radar: 'Radar: Deutscher Wetterdienst · © OpenStreetMap',
     },
     states: {
       neverLoaded: {

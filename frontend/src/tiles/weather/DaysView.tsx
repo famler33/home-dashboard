@@ -48,12 +48,14 @@ export function DaysView({
             <span className="font-medium">{`${roundTemperature(day.max)}°`}</span>
             <span className="text-ink-muted">{`${roundTemperature(day.min)}°`}</span>
           </span>
-          {day.precipProbability >= SHOW_PROBABILITY_FROM && (
+          {day.precipProbability >= SHOW_PROBABILITY_FROM ? (
             <span className="text-accent">
               {t(wall ? 'weather.probabilityCompact' : 'weather.probability', {
                 value: Math.round(day.precipProbability),
               })}
             </span>
+          ) : (
+            wall && <span aria-hidden="true">&nbsp;</span>
           )}
         </li>
       ))}
