@@ -103,4 +103,22 @@ describe('fitRows', () => {
     const result = fitRows(plan(0, [day('a', 2, true), day('b', 4)]), 6);
     expect(result.days[1]).toEqual({ date: 'b', shown: 0, collapsed: true, hidden: false });
   });
+
+  it('does not count a phantom row (the empty-today text) as a hidden appointment', () => {
+    const result = fitRows(
+      {
+        kita: [],
+        kitaHead: 0,
+        more: 1,
+        days: [
+          { date: 'a', head: 1, rows: [1], partial: true, phantom: true },
+          { date: 'b', head: 1, rows: [1, 1], partial: false },
+        ],
+      },
+      2,
+    );
+    // one row for more, one left: today shows its heading only, its text row is not an appointment
+    expect(result.days[0]).toEqual({ date: 'a', shown: 0, collapsed: false, hidden: false });
+    expect(result.more).toBe(2);
+  });
 });

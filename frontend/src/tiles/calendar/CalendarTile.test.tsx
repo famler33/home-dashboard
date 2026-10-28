@@ -330,10 +330,35 @@ describe('CalendarTile Kita block', () => {
     show();
     const block = screen.getByTestId('kita-block');
     expect(within(block).getByText(de.calendar.kita)).toBeInTheDocument();
-    expect(within(block).getByText(/Heute/)).toBeInTheDocument();
-    expect(within(block).getByText('15:30')).toBeInTheDocument();
-    expect(within(block).getByText('Kita holen – Alex')).toBeInTheDocument();
-    expect(within(block).getByText('Kita bringen – Ben')).toBeInTheDocument();
+    const columns = within(block).getAllByTestId('kita-day');
+    expect(columns).toHaveLength(2);
+    expect(within(columns[0]!).getByText('Heute')).toBeInTheDocument();
+    expect(within(columns[0]!).getByText('15:30')).toBeInTheDocument();
+    expect(within(columns[0]!).getByText('holen – Alex')).toBeInTheDocument();
+    expect(within(columns[1]!).getByText('Morgen')).toBeInTheDocument();
+    expect(within(columns[1]!).getByText('bringen – Ben')).toBeInTheDocument();
+  });
+
+  it('keeps the full title for assistive technology and the tooltip', () => {
+    show();
+    const row = screen.getAllByTestId('kita-row')[0]!;
+    expect(within(row).getByTestId('kita-title')).toHaveAttribute('title', 'Kita holen – Alex');
+    expect(
+      within(row).getByText(/Kita holen – Alex/, { selector: '.sr-only' }),
+    ).toBeInTheDocument();
+  });
+
+  it('shows bringen and abholen of one day together in one column', () => {
+    show([
+      entry('calendar-family', [
+        timed('Kita Kind Hinbringen', '2026-10-29T09:00', '2026-10-29T09:30'),
+        timed('Kita Kind Abholen', '2026-10-29T15:00', '2026-10-29T15:30'),
+      ]),
+    ]);
+    const columns = screen.getAllByTestId('kita-day');
+    expect(columns).toHaveLength(1);
+    expect(within(columns[0]!).getByText('Kind Hinbringen')).toBeInTheDocument();
+    expect(within(columns[0]!).getByText('Kind Abholen')).toBeInTheDocument();
   });
 
   it('shows a Kita event in the block only, not again in the agenda', () => {
@@ -405,6 +430,25 @@ describe('CalendarView row budget', () => {
       contextFixture(snapshotWith(sources)),
     );
   };
+
+  it('does not report the empty-today text as a hidden appointment', () => {
+    const only = [
+      entry('calendar-family', [timed('Kita bringen', '2026-10-29T08:00', '2026-10-29T08:30')]),
+    ];
+    renderWithProviders(
+      <ShellContext.Provider value={{ layout: 'tablet', theme: 'day' }}>
+        <CalendarView
+          snapshot={snapshotWith(only)}
+          now={calendarNow}
+          layout="tablet"
+          budget={4}
+          tab="all"
+        />
+      </ShellContext.Provider>,
+      contextFixture(snapshotWith(only)),
+    );
+    expect(screen.queryByText(/weitere/)).toBeNull();
+  });
 
   it('fills whole rows only and ends with + n weitere', () => {
     view(6);

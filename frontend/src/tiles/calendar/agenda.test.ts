@@ -230,3 +230,17 @@ describe('splitKita', () => {
     expect(settingsFixture.calendars).toHaveLength(3);
   });
 });
+
+describe('kitaLabel', () => {
+  it('removes the keyword and its separators from the title', () => {
+    expect(kitaLabel('Kita Kind Hinbringen', 'Kita')).toBe('Kind Hinbringen');
+    expect(kitaLabel('KITA: Kind abholen', 'kita')).toBe('Kind abholen');
+    expect(kitaLabel('Kind abholen – Kita', 'Kita')).toBe('Kind abholen');
+    expect(kitaLabel('Kita holen – Alex', 'Kita')).toBe('holen – Alex');
+  });
+
+  it('keeps the full title when nothing else is left', () => {
+    expect(kitaLabel('Kita', 'Kita')).toBe('Kita');
+    expect(kitaLabel(' kita ', 'Kita')).toBe('kita');
+  });
+});
