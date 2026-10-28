@@ -92,7 +92,7 @@ describe('symbol motion styles', () => {
   });
 
   it('turns the symbol animations off under reduced motion', () => {
-    const reduced = /@media \(prefers-reduced-motion: reduce\)\s*\{([\s\S]*?)\n  \}/.exec(
+    const reduced = /@media \(prefers-reduced-motion: reduce\)\s*\{([\s\S]*?)\n {2}\}/.exec(
       css.slice(css.indexOf('symbol-')),
     );
     expect(css).toMatch(/prefers-reduced-motion: reduce[\s\S]*\.symbol-[\s\S]*animation:\s*none/);
