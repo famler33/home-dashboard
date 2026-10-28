@@ -109,7 +109,14 @@ const defaultRequest: RawRequest = (call) =>
         for (const [key, value] of Object.entries(res.headers)) {
           headers[key] = Array.isArray(value) ? value[0] : value;
         }
-        resolve({ status: res.statusCode ?? 0, headers, body: res });
+        const status = res.statusCode ?? 0;
+        if (status === 304 || (status >= 300 && status < 400)) {
+          // No body is needed; release the socket instead of leaving the response unread.
+          res.resume();
+          resolve({ status, headers, body: (async function* () {})() });
+          return;
+        }
+        resolve({ status, headers, body: res });
       },
     );
     req.on('error', reject);

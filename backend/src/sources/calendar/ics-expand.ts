@@ -8,6 +8,7 @@ const MAX_UID = 100;
 const MAX_STEPS_PER_RULE = 20_000;
 const MAX_STEPS_PER_FEED = 100_000;
 const DAY_MS = 86_400_000;
+const DEFAULT_BUDGET_MS = 4000;
 // eslint-disable-next-line no-control-regex
 const controlCharacters = /[\u0000-\u001f\u007f-\u009f]/g;
 
@@ -16,6 +17,8 @@ export interface ExpandOptions {
   timezone: string;
   /** Addresses of the calendar owner, used to recognise declined invitations. */
   selfAddresses: readonly string[];
+  /** Expansion stops (and the payload reports `truncated`) after this many milliseconds; default 4000. */
+  timeBudgetMs?: number | undefined;
 }
 
 interface Candidate {
@@ -139,6 +142,8 @@ export function expandCalendar(text: string, options: ExpandOptions): CalendarPa
   const candidates: Candidate[] = [];
   let truncated = false;
   let totalSteps = 0;
+  const deadline = Date.now() + (options.timeBudgetMs ?? DEFAULT_BUDGET_MS);
+  const overBudget = (): boolean => Date.now() > deadline;
 
   function consider(item: ICAL.Event, start: ICAL.Time, end: ICAL.Time): void {
     const status = String(item.component.getFirstPropertyValue('status') ?? '').toUpperCase();
@@ -211,6 +216,10 @@ export function expandCalendar(text: string, options: ExpandOptions): CalendarPa
     }
 
     for (const event of [...masters.values(), ...standalone]) {
+      if (overBudget()) {
+        truncated = true;
+        break;
+      }
       try {
         if (!event.isRecurring()) {
           consider(event, event.startDate, event.endDate);
@@ -221,7 +230,11 @@ export function expandCalendar(text: string, options: ExpandOptions): CalendarPa
         for (let next = iterator.next(); next; next = iterator.next()) {
           steps += 1;
           totalSteps += 1;
-          if (steps > MAX_STEPS_PER_RULE || totalSteps > MAX_STEPS_PER_FEED) {
+          if (
+            steps > MAX_STEPS_PER_RULE ||
+            totalSteps > MAX_STEPS_PER_FEED ||
+            (steps % 64 === 0 && overBudget())
+          ) {
             truncated = true;
             break;
           }
