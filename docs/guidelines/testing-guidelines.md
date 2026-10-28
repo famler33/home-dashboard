@@ -63,8 +63,26 @@ pnpm exec tsc --noEmit
 docker compose -f infrastructure/docker-compose.yml config --quiet
 ```
 
+Additional checks:
+
+- Backend `pnpm build` must succeed (compiled output and migrations are copied).
+- The Docker-gated tests (`backend/test/docker.test.ts`: amd64 image build, native SQLite binding,
+  start with the example configuration and health) run when a Docker daemon is available (on a
+  Mac, for example Colima or Docker Desktop) and are skipped otherwise. A skipped run leaves the
+  affected criteria unverified.
+- Accelerated soak (virtual clock, heap sample): `pnpm run e2e:soak` from `frontend/`
+  (`SOAK_MINUTES`, default 10). It is excluded from the default Playwright run.
+- Playwright starts the production build through the real backend on port 4173; the browser
+  `webServer` command builds the SPA, so no separate build step is needed. Playwright mocks only the
+  snapshot route and uses its fake clock; its screenshots (`frontend/e2e/screenshots/`) are generated
+  evidence and git-ignored.
+- Browser layout checks use CSS pixel sizes of real tablets (a physical 2048 x 1536 iPad is
+  1024 x 768) and assert that tile content neither clips nor overlaps its heading.
+
 - Tests never call real external services (weather, calendar, news); they use fakes
-  or recorded fixtures. No gate needs a real API key.
+  or recorded fixtures. No gate needs a real API key. Tests that need time use injected clocks
+  and timers rather than real waiting.
+- Use Node 22 and pnpm 12 for all commands.
 - SQLite and temporary directories are used directly; Docker is only needed to build
   or run the containers.
 

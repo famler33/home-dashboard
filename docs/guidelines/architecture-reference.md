@@ -9,11 +9,13 @@ respective coding guidelines.
 
 | Layer    | Choice |
 | -------- | ------ |
-| Frontend | React, Vite, TypeScript (pnpm); Tailwind CSS; animation library <TODO: offen> |
-| Backend  | Node.js, Fastify, TypeScript |
-| Database | SQLite (lists, cache, settings) |
-| Infra    | Docker + Docker Compose on a Synology NAS (Container Manager), home network only |
-| CI/CD    | None yet (local repository) |
+| Frontend | React, Vite, TypeScript (pnpm); Tailwind CSS 3 with design tokens; i18next (German); CSS animation plus Motion for the rolling clock; lucide icons; self-hosted variable font |
+| Backend  | Node.js 22, Fastify 5, TypeScript, TypeBox schemas, YAML configuration |
+| Database | SQLite via better-sqlite3 (source cache, later lists); numbered SQL migrations |
+| Infra    | One Docker image (linux/amd64) and Docker Compose on a Synology NAS (Container Manager), home network only |
+| CI/CD    | None yet (local repository); one-command deploy script from the Mac |
+
+TypeScript is pinned to 6.x in both packages because typescript-eslint does not support 7 yet.
 
 ## High-Impact Decisions
 
@@ -29,6 +31,36 @@ The frontend never calls external services directly. The backend fetches weather
 calendars and news, caches results in SQLite and exposes one stable internal API.
 API keys and calendar credentials therefore live only on the NAS, and the wall tablet
 keeps showing the last cached data when an external service or the internet is down.
+
+### One read model, polled
+
+The display polls one endpoint, `GET /api/v1/snapshot`, every 30 seconds. The response carries
+the build id, the server time, an explicit allowlist of settings and, per source, `id`, `status`,
+`data`, `lastUpdated`, `ageSeconds`, `staleAfterSeconds` and `lastErrorCode`. Freshness is computed on the
+server; the client only keeps ageing between polls with a monotonic clock. A failed poll is the
+offline signal and a changed build id reloads the page. There is no server push: polling has no
+connection state that can hang for days. Later epics extend the snapshot by adding sources, not by
+changing the envelope; a breaking change needs `/api/v2`.
+
+### Sources and the scheduler
+
+A *source* (`id`, `intervalSeconds`, `staleAfterSeconds`, `timeoutMs`, `fetch`) is the only way
+external data enters the system. An in-process scheduler (chained timeouts, injectable clock and
+timers, no dependency) runs each source and the nightly backup. The source runner stores the
+payload on success and only an error code on failure, so the last good payload always survives.
+
+### One container, one origin
+
+The backend serves the built SPA and the API from a single container and a single port; there is
+no CORS and no second web server. Hashed assets are immutable, the entry page is `no-cache`, API
+responses are `no-store`.
+
+### Configuration
+
+Settings and credentials are two YAML files on the NAS (`settings.yaml` required,
+`credentials.yaml` optional), mounted read-only into the container, validated at start with
+TypeBox and failing closed. The frontend only receives a hand-built
+projection (time zone and display schedule). There is no settings screen.
 
 ### Calendar sources
 

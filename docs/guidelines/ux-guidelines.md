@@ -24,38 +24,61 @@ in the home network for lists.
 
 ## Readability & contrast
 
-- Readable from 2–3 meters: large type, high contrast. Exact scale: <TODO: offen>.
+- Readable from 2–3 meters: large type, high contrast. In the wall layout every text is at least
+  28 px (caption); the scale is caption 28, body 32, title 40, display 64 (each `max(floor, width part)`)
+  and the clock `max(112 px, min(9vw, 15vh))`. The phone layout uses 14–20 px for text and 32 px for its compact clock.
+- Contrast is a best-effort floor, tested on the pairs actually used in both themes: primary text
+  at least 7:1, everything else at least 4.5:1. No formal conformance level is required.
+- Line heights are tight for large text (clock 1, display 1.05, title 1.2) so tiles keep their content.
 
 ## Touch targets & layout
 
-- Generous touch targets on the tablet. Target resolution and orientation:
-  <TODO: offen>.
+- Generous touch targets (at least 44 px on the phone, more on the tablet).
+- The wall layout is landscape only, for screens of at least 1024 x 750 or 1180 x 700 CSS pixels
+  (a 2048 x 1536 iPad reports 1024 x 768). Smaller screens and portrait use the scrollable phone
+  layout. It is four tiles on a 12 x 6 grid: weather and lists on the left, calendar and news on
+  the right. The phone layout puts the lists first.
+- Tile content never overlaps its heading or leaves its card; on screens up to 850 px high the
+  explanatory hints in tile states become screen-reader-only and spacing shrinks.
 
 ## Feedback & error states
 
 - Every widget shows loading, empty, stale ("zuletzt aktualisiert …") and error
-  states; never a blank screen. A calm offline indication when the backend is
-  unreachable.
+  states; never a blank screen. A tile that has never loaded or whose first fetch failed says so.
+- Stale means an amber accent plus a clock icon plus the word "Veraltet" and the age ("vor 5 Min."),
+  never color alone; under 15 seconds the text is "gerade eben". Copy is calm and specific, without
+  exclamation marks or error codes.
+- Backend unreachable: a pill in the header with an icon and "Keine Verbindung" in a color distinct
+  from the stale accent; data stays visible and the display recovers by itself.
 
 ## Visual design & animation
 
-- Distinctive, polished design with purposeful animation; calm rather than flashy.
-- Animate transform/opacity only; honor `prefers-reduced-motion`.
-- Avoid burn-in: subtle periodic movement or dimming at night is considered.
-  <TODO: offen>
+- Distinctive, polished, minimalist design with purposeful animation; calm rather than flashy:
+  staggered tile entrance, a slow ambient background and a rolling clock. No parallax or particles.
+- Animate transform/opacity only. With "reduce motion" the entrance becomes a 150 ms fade, the
+  ambient background stops and the clock swaps digits without movement.
+- Burn-in protection: the shell shifts through eight positions of at most 8 px every 5 minutes (half
+  amplitude by day), as an instant step under "reduce motion". Phones do not drift.
+- One tap on the wall layout enters fullscreen; a discreet hint in the header shows while fullscreen
+  is possible but inactive. Keeping the screen awake relies on the tablet settings over HTTP.
 
 ## Internationalization
 
-- German UI; no hard-coded strings.
+- German UI; no hard-coded strings (typed dictionary, `Intl` for dates and relative times).
 
 ## Dark mode
 
-<TODO: offen> — likely automatic day/night mode for a wall display.
+Automatic day and night theme from a configured daily schedule in the household time zone. The
+night theme dims the whole dashboard and keeps every tile visible; both themes are defined as
+semantic color tokens and meet the contrast floors above.
 
 ## Iconography
 
-<TODO: offen>
+One open SVG set (lucide) as components; no emoji. Icons accompany state texts and are decorative
+(`aria-hidden`).
 
 ## Accessibility
 
-<TODO: offen> — target level to be decided.
+Best effort, no formal level: sufficient contrast, large type, semantic landmarks (tiles are labelled
+regions), `aria-label` on the clock with the full time while its digits are hidden from screen
+readers, the offline indicator as a status role, and `prefers-reduced-motion` support.
