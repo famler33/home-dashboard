@@ -61,11 +61,11 @@ export function TileFrame({
       style={{ '--i': index } as CSSProperties}
       className="animate-tile-in relative flex h-full min-h-0 flex-col gap-3 overflow-hidden rounded-3xl bg-surface-raised p-5 shadow-sm tablet-short:gap-2 tablet-short:p-3"
     >
-      <div className="relative self-stretch">
-        <h2 id={headingId} className="self-start text-caption font-medium text-ink-muted">
-          {title}
-        </h2>
-        {onOpenDetail && (
+      {onOpenDetail ? (
+        <div className="relative self-stretch">
+          <h2 id={headingId} className="self-start text-caption font-medium text-ink-muted">
+            {title}
+          </h2>
           <button
             type="button"
             aria-haspopup="dialog"
@@ -75,13 +75,16 @@ export function TileFrame({
               onOpenDetail(event.currentTarget);
             }}
             onPointerUp={(event) => event.stopPropagation()}
-            className="absolute -top-2 right-0 flex min-h-14 min-w-14 items-center justify-end rounded-2xl pr-1 text-ink-muted focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
-            style={{ left: 0 }}
+            className="absolute -top-2 right-0 left-0 flex min-h-14 min-w-14 items-center justify-end rounded-2xl pr-1 text-ink-muted focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
           >
             <ChevronRight aria-hidden="true" className="h-[1.4em] w-[1.4em]" />
           </button>
-        )}
-      </div>
+        </div>
+      ) : (
+        <h2 id={headingId} className="self-start text-caption font-medium text-ink-muted">
+          {title}
+        </h2>
+      )}
       <div className="min-h-0 flex-1 overflow-hidden">
         {showsContent ? (
           children

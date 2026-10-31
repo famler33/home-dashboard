@@ -71,6 +71,9 @@ export async function tileFitProblems(page: Page): Promise<string[]> {
       }
       for (const element of Array.from(section.querySelectorAll('*'))) {
         if (element.closest('.sr-only, [class*="sr-only"]') || element.closest('h2')) continue;
+        // the heading row and its detail button belong to the heading itself
+        if (heading && element.contains(section.querySelector('h2'))) continue;
+        if (element.matches('[aria-haspopup="dialog"]')) continue;
         const r = element.getBoundingClientRect();
         if (r.width === 0 || r.height === 0) continue;
         if (
