@@ -262,3 +262,47 @@ describe('loadConfig calendar settings', () => {
     expect(projectSettings(load().settings).calendar).toBeUndefined();
   });
 });
+
+// Covers: NFR-3, AC-5 (network.allowedHosts)
+describe('loadConfig network settings', () => {
+  it('accepts a list of lowercase host names and IPv6 literals', () => {
+    write(
+      'settings.yaml',
+      validSettings.replace(
+        'backup:',
+        'network:\n  allowedHosts: [dashboard.home, 192.168.1.20, "[::1]"]\nbackup:',
+      ),
+    );
+    expect(load().settings.network?.allowedHosts).toEqual([
+      'dashboard.home',
+      '192.168.1.20',
+      '[::1]',
+    ]);
+    expect(load().warnings.join('\n')).not.toContain('allowedHosts');
+  });
+
+  it('rejects schemes, ports, wildcards, uppercase and empty lists naming the key', () => {
+    for (const bad of [
+      'http://dashboard.home',
+      'dashboard.home:8080',
+      '*.home',
+      'Dashboard.Home',
+    ]) {
+      write(
+        'settings.yaml',
+        validSettings.replace('backup:', `network:\n  allowedHosts: ["${bad}"]\nbackup:`),
+      );
+      expect(() => load(), bad).toThrowError(/network\.allowedHosts/);
+    }
+    write(
+      'settings.yaml',
+      validSettings.replace('backup:', 'network:\n  allowedHosts: []\nbackup:'),
+    );
+    expect(() => load()).toThrowError(/network\.allowedHosts/);
+  });
+
+  it('warns that only loopback is allowed when the setting is missing', () => {
+    write('settings.yaml', validSettings);
+    expect(load().warnings.join('\n')).toContain('network.allowedHosts is not set');
+  });
+});
