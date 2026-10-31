@@ -13,6 +13,8 @@ import { useUndoWindow } from './useUndoWindow';
 
 const UNDO_MS = 8_000;
 const ROW_PX = 56 + 4;
+// The "+ n weitere" button keeps a 44px touch target (min-h-11) plus the column gap.
+const MORE_PX = 44 + 4;
 
 type Row = (MarkedShopping | MarkedTodo) & { categoryName?: string };
 
@@ -49,7 +51,11 @@ export function ListsTile({ budget }: Props) {
   const heights =
     budget === undefined
       ? metrics
-        ? { head: metrics.head, row: Math.max(metrics.body, ROW_PX), more: metrics.caption }
+        ? {
+            head: metrics.head,
+            row: Math.max(metrics.body, ROW_PX),
+            more: Math.max(metrics.caption, MORE_PX),
+          }
         : null
       : unit;
   const effectiveBudget = budget === undefined ? (metrics?.budget ?? null) : budget;
@@ -178,7 +184,10 @@ export function ListsTile({ budget }: Props) {
         </button>
       )}
       <div ref={bodyRef} className="relative min-h-0 flex-1 overflow-hidden">
-        <div aria-hidden="true" className="invisible absolute inset-x-0 top-0 -z-10">
+        <div
+          aria-hidden="true"
+          className="invisible absolute inset-x-0 top-0 -z-10 h-0 overflow-clip"
+        >
           <div ref={headRef} className="text-caption font-semibold">
             {'M'}
           </div>
