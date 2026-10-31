@@ -159,3 +159,26 @@ describe('tiles bound to several sources', () => {
     expect(ids([])).toContain('calendar');
   });
 });
+
+// Covers: FR-2, FR-12, AC-39, AC-52
+describe('lists tile registration', () => {
+  it('replaces the lists placeholder with the live lists tile when the lists source exists and keeps its area', () => {
+    const area = (id: string) => tileRegistry.find((tile) => tile.id === id)!.tablet;
+    expect(area('lists-live')).toEqual(area('lists'));
+    const ids = (sources: string[]) =>
+      visibleTiles(
+        tileRegistry,
+        snapshotFixture({ sources: sources.map((id) => sourceFixture({ id })) }),
+      ).map((tile) => tile.id);
+    expect(ids(['lists'])).toContain('lists-live');
+    expect(ids(['lists'])).not.toContain('lists');
+    expect(ids([])).toContain('lists');
+  });
+
+  it('keeps the lists tile first on the phone', () => {
+    const first = [
+      ...visibleTiles(tileRegistry, snapshotFixture({ sources: [sourceFixture({ id: 'lists' })] })),
+    ].sort((a, b) => a.phoneOrder - b.phoneOrder)[0];
+    expect(first?.id).toBe('lists-live');
+  });
+});

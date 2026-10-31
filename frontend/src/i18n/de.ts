@@ -9,7 +9,36 @@ export const de = {
     demo: 'Demo',
   },
   detail: { back: 'Zurück' },
-  lists: { open: 'Listen öffnen' },
+  lists: {
+    open: 'Listen öffnen',
+    openPage: 'Liste bearbeiten',
+    shopping: 'Einkauf',
+    todos: 'To-dos',
+    emptyShopping: 'Nichts zu kaufen',
+    emptyTodos: 'Keine offenen To-dos',
+    allDone: 'Alles erledigt',
+    more: '+ {{count}} weitere',
+    undo: 'Rückgängig',
+    unsaved: '{{count}} nicht gespeichert',
+    notSaved: 'Nicht gespeichert',
+    saving: 'Wird gespeichert',
+    check: 'Abhaken',
+    priority: {
+      high: 'Priorität hoch',
+      medium: 'Priorität mittel',
+      low: 'Priorität niedrig',
+    },
+    states: {
+      neverLoaded: {
+        title: 'Listen noch nicht geladen',
+        hint: 'Die Listen werden gleich abgerufen.',
+      },
+      error: {
+        title: 'Listen derzeit nicht verfügbar',
+        hint: 'Der Abruf wird laufend erneut versucht.',
+      },
+    },
+  },
   placeholder: {
     title: 'Kommt bald',
     hint: 'Diese Kachel wird in einer späteren Version freigeschaltet.',

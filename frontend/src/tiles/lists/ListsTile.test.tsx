@@ -169,7 +169,8 @@ describe('ListsTile on the wall', () => {
     const todos = column(de.lists.todos);
     expect(within(todos).getAllByTestId('list-row')).toHaveLength(1);
     expect(within(todos).getByText('+ 2 weitere')).toBeInTheDocument();
-    expect(within(column(de.lists.shopping)).getByText('+ 1 weitere')).toBeInTheDocument();
+    // the shopping column fits completely in three unit rows
+    expect(within(column(de.lists.shopping)).queryByText(/weitere/)).toBeNull();
   });
 
   it('shows the highest priorities first when the tile is too small', () => {

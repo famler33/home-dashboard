@@ -5,6 +5,7 @@ import { DemoTile } from './demo/DemoTile';
 import { weatherHeading } from './weather/heading';
 import { isWeatherPayload } from './weather/types';
 import { WeatherTile } from './weather/WeatherTile';
+import { ListsTileContent } from './lists/ListsTile';
 import { PlaceholderTile } from './PlaceholderTile';
 import type { TileDefinition } from './types';
 
@@ -15,6 +16,26 @@ export const tileRegistry: readonly TileDefinition[] = [
     tablet: { col: 1, row: 5, colSpan: 5, rowSpan: 2 },
     phoneOrder: 0,
     Component: PlaceholderTile,
+  },
+  {
+    id: 'lists-live',
+    titleKey: 'tiles.lists',
+    sourceId: 'lists',
+    requiresSource: true,
+    replaces: 'lists',
+    detailLabelKey: 'lists.open',
+    tablet: { col: 1, row: 5, colSpan: 5, rowSpan: 2 },
+    phoneOrder: 0,
+    stateTexts: {
+      'never-loaded': {
+        titleKey: 'lists.states.neverLoaded.title',
+        hintKey: 'lists.states.neverLoaded.hint',
+      },
+      error: { titleKey: 'lists.states.error.title', hintKey: 'lists.states.error.hint' },
+    },
+    freshFooter: false,
+    isEmpty: () => false,
+    Component: ListsTileContent,
   },
   {
     id: 'calendar',
