@@ -1,8 +1,9 @@
-import { act, fireEvent, screen, within } from '@testing-library/react';
+import { act, fireEvent, render, screen, within } from '@testing-library/react';
+import { I18nextProvider } from 'react-i18next';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import golden from '../../../backend/test/fixtures/lists/lists.state.sample.json';
 import type { ListsState } from '../api/lists-types';
-import { createI18n } from '../i18n';
+import { createI18n, i18n } from '../i18n';
 import { de } from '../i18n/de';
 import { DetailBusyContext } from '../shell/detail-context';
 import { renderWithProviders } from '../test-utils';
@@ -345,16 +346,17 @@ describe('ListsEditor stability and texts', () => {
     expect(spies.setHold).toHaveBeenLastCalledWith(true);
   });
 
-  it('keys rows by id and keeps the typed text when the view updates', () => {
+  it('keeps the typed text when the view updates', () => {
     const { controller } = makeController();
     const ui = (next: ListsController) => (
-      <ListsContext.Provider value={next}>
-        <ListsEditor layout="phone" />
-      </ListsContext.Provider>
+      <I18nextProvider i18n={i18n}>
+        <ListsContext.Provider value={next}>
+          <ListsEditor layout="phone" />
+        </ListsContext.Provider>
+      </I18nextProvider>
     );
-    const first = renderWithProviders(ui(controller));
-    const input = within(shoppingSection()).getByRole('textbox');
-    fireEvent.change(input, { target: { value: 'Teil' } });
+    const first = render(ui(controller));
+    fireEvent.change(within(shoppingSection()).getByRole('textbox'), { target: { value: 'Teil' } });
     first.rerender(
       ui({
         ...controller,
