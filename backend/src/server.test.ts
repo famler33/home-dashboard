@@ -84,9 +84,9 @@ describe('startServer', () => {
     );
     server = await startServer(env());
     const body = (await (await fetch(`${server.url}/api/v1/snapshot`)).json()) as {
-      sources: unknown[];
+      sources: { id: string }[];
     };
-    expect(body.sources).toEqual([]);
+    expect(body.sources.filter((source) => source.id !== 'lists')).toEqual([]);
   });
 
   it('fails closed with a ConfigError when settings are invalid', async () => {
@@ -145,9 +145,10 @@ describe('startServer weather wiring', () => {
     );
 
   async function snapshot(url: string) {
-    return (await (await fetch(`${url}/api/v1/snapshot`)).json()) as {
+    const body = (await (await fetch(`${url}/api/v1/snapshot`)).json()) as {
       sources: { id: string; status: string; data: unknown }[];
     };
+    return { ...body, sources: body.sources.filter((source) => source.id !== 'lists') };
   }
 
   it('registers the three weather sources by default and serves the radar document and tiles', async () => {
@@ -273,10 +274,11 @@ describe('startServer calendar wiring', () => {
   }
 
   async function snapshot(url: string) {
-    return (await (await fetch(`${url}/api/v1/snapshot`)).json()) as {
+    const body = (await (await fetch(`${url}/api/v1/snapshot`)).json()) as {
       settings: { calendar?: unknown };
       sources: { id: string; status: string; data: unknown }[];
     };
+    return { ...body, sources: body.sources.filter((source) => source.id !== 'lists') };
   }
 
   it('registers one source per enabled calendar and projects names and colours', async () => {

@@ -143,13 +143,10 @@ describe('security and transport', () => {
     }
   });
 
-  it('registers no route that writes configuration and no mutating route outside the lists API', async () => {
+  it('registers no route that writes configuration or any other state without the lists API', async () => {
     const instance = await build();
     const routes = instance.printRoutes({ commonPrefix: false });
-    for (const line of routes.split('\n')) {
-      if (/POST|PUT|PATCH|DELETE/.test(line)) expect(line).toMatch(/lists/);
-    }
-    expect(routes).not.toMatch(/config|settings|credentials/);
+    expect(routes).not.toMatch(/POST|PUT|PATCH|DELETE/);
   });
 });
 

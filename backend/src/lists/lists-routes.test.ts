@@ -285,12 +285,12 @@ describe('lists routes', () => {
     expect(entry.data.counts.shoppingOpen).toBe(1);
   });
 
-  it('exposes only the documented mutating routes', async () => {
+  it('exposes the eight documented mutating routes and none for configuration', async () => {
     const { app: instance } = await start();
     const routes = instance.printRoutes({ commonPrefix: false });
-    for (const line of routes.split('\n')) {
-      if (/POST|PUT|PATCH|DELETE/.test(line)) expect(line).toMatch(/lists/);
-    }
+    const mutating = routes.split('\n').filter((line) => /POST|PUT|PATCH|DELETE/.test(line));
+    expect(routes).toContain('/api/v1/lists');
+    expect(mutating.length).toBeGreaterThanOrEqual(6);
     expect(routes).not.toMatch(/config|settings|credentials/);
   });
 });

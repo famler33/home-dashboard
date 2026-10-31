@@ -8,6 +8,8 @@ import type { AppConfig } from './config/load-config.js';
 import { registerErrorHandling } from './errors.js';
 import { registerRequestGuard } from './request-guard.js';
 import { redactPaths, type LogOptions } from './logging.js';
+import { listsRoutes } from './lists/lists-routes.js';
+import type { ListsService } from './lists/lists-service.js';
 import { healthRoute } from './routes/health.route.js';
 import { snapshotRoute } from './routes/snapshot.route.js';
 import { weatherRoutes, type WeatherDeps } from './routes/weather.route.js';
@@ -21,6 +23,7 @@ export interface AppDeps {
   buildId: string;
   staticDir?: string;
   weather?: WeatherDeps;
+  lists?: ListsService;
   logger?: LogOptions;
 }
 
@@ -38,6 +41,8 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
       disableRequestLogging: (request) => request.url === '/api/v1/health',
     }),
     bodyLimit: BODY_LIMIT_BYTES,
+    // Schemas reject unknown properties and wrong types instead of silently fixing them.
+    ajv: { customOptions: { removeAdditional: false, coerceTypes: false, useDefaults: false } },
     requestTimeout: 15_000,
     connectionTimeout: 15_000,
     keepAliveTimeout: 5_000,
@@ -69,6 +74,16 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     return payload;
   });
 
+  // A bodiless request that still says it is JSON (retries of POST and DELETE) is not an error.
+  const parseJson = app.getDefaultJsonParser('error', 'error');
+  // The API speaks JSON only: anything else (including text/plain) is answered with 415.
+  app.removeContentTypeParser('text/plain');
+  app.removeContentTypeParser('application/json');
+  app.addContentTypeParser('application/json', { parseAs: 'string' }, (request, body, done) => {
+    if (body === '') return done(null, undefined);
+    return parseJson(request, body as string, done);
+  });
+
   registerRequestGuard(app, deps.config.settings.network?.allowedHosts ?? []);
   registerErrorHandling(app, deps.staticDir !== undefined);
 
@@ -84,6 +99,7 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
   );
 
   if (deps.weather) await app.register(weatherRoutes(deps.weather));
+  if (deps.lists) await app.register(listsRoutes(deps.lists));
 
   if (deps.staticDir !== undefined) {
     await app.register(fastifyStatic, {

@@ -1,4 +1,6 @@
 import { calendarIds } from './config/schema.js';
+import { createListsService } from './lists/lists-service.js';
+import { createListsSource } from './lists/lists-source.js';
 import type { Logger } from './logger.js';
 import { createCalendarSource } from './sources/calendar/calendar-source.js';
 import { createFeedTransport, type FeedTransport } from './sources/calendar/feed-transport.js';
@@ -55,6 +57,14 @@ export async function startServer(
   const db = openDatabase(join(dataDir, 'dashboard.sqlite'));
   const store = createSnapshotStore(db);
   const sources: Source[] = config.settings.sources.demo.enabled ? [createDemoSource()] : [];
+  const clockNow = overrides.now ?? (() => Date.now());
+  const lists = createListsService({
+    db,
+    store,
+    now: clockNow,
+    timezone: config.settings.timezone,
+  });
+  sources.push(createListsSource(lists, clockNow));
 
   let weather:
     { radarStore: RadarStore; basemap: ReturnType<typeof createBasemapService> } | undefined;
@@ -118,6 +128,7 @@ export async function startServer(
     buildId,
     ...(staticDir !== undefined ? { staticDir } : {}),
     ...(weather ? { weather } : {}),
+    lists,
   });
   loggerRef.current = app.log;
   for (const warning of config.warnings) app.log.warn(warning);
