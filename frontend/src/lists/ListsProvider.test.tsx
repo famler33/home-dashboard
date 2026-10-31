@@ -12,12 +12,18 @@ import { useLists, useListsEditor, type ListsController } from './lists-context'
 
 const state = golden as unknown as ListsState;
 const snapshot = snapshotJson as unknown as Snapshot;
-let controller: ListsController;
+const held: { current: ListsController | null } = { current: null };
+const controller = new Proxy({} as ListsController, {
+  get: (_target, key) => (held.current as unknown as Record<string | symbol, unknown>)[key],
+});
 
 function Probe() {
-  controller = useLists();
+  const lists = useLists();
+  useEffect(() => {
+    held.current = lists;
+  });
   return (
-    <p data-testid="probe">{`${controller.view.shopping.map((item) => item.title).join(',')}|${controller.view.pendingCount}|${controller.view.failedCount}`}</p>
+    <p data-testid="probe">{`${lists.view.shopping.map((item) => item.title).join(',')}|${lists.view.pendingCount}|${lists.view.failedCount}`}</p>
   );
 }
 function Editor() {
