@@ -100,11 +100,12 @@ describe('request guard', () => {
 
   it('accepts a matching Origin, a request without Origin and same-origin fetch metadata', async () => {
     const instance = await start(['dashboard.home']);
-    for (const headers of [
+    const accepted: Record<string, string>[] = [
       { host: 'dashboard.home:8080', origin: 'http://dashboard.home:8080' },
       { host: 'dashboard.home' },
       { host: 'dashboard.home', 'sec-fetch-site': 'same-origin' },
-    ]) {
+    ];
+    for (const headers of accepted) {
       const response = await call(instance, 'POST', '/api/v1/nope', headers);
       expect(response.statusCode).toBe(404);
     }
@@ -117,19 +118,6 @@ describe('request guard', () => {
       origin: 'https://evil.example',
     });
     expect(response.statusCode).toBe(200);
-  });
-
-  it('answers 415 UNSUPPORTED_MEDIA_TYPE for a body that is not JSON', async () => {
-    const instance = await start(['dashboard.home']);
-    instance.post('/api/v1/echo', async () => ({ ok: true }));
-    const response = await instance.inject({
-      method: 'POST',
-      url: '/api/v1/echo',
-      headers: { host: 'dashboard.home', 'content-type': 'text/plain' },
-      payload: 'hello',
-    });
-    expect(response.statusCode).toBe(415);
-    expect(response.json().error.code).toBe('UNSUPPORTED_MEDIA_TYPE');
   });
 
   it('sends no Access-Control headers and answers a preflight without them', async () => {

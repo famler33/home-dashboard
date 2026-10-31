@@ -131,11 +131,15 @@ describe('security and transport', () => {
     expect(response.headers['access-control-allow-origin']).toBeUndefined();
   });
 
-  it('serves the same content for any Host header', async () => {
+  it('answers the API only for allowed host names and any port', async () => {
     const instance = await build();
+    for (const host of ['localhost', 'localhost:8080', '127.0.0.1:18080']) {
+      const response = await instance.inject({ url: '/api/v1/health', headers: { host } });
+      expect(response.statusCode, host).toBe(200);
+    }
     for (const host of ['dashboard.home', '192.168.1.20:8080', 'nas.local']) {
       const response = await instance.inject({ url: '/api/v1/health', headers: { host } });
-      expect(response.statusCode).toBe(200);
+      expect(response.statusCode, host).toBe(403);
     }
   });
 

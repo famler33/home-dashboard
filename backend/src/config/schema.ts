@@ -60,6 +60,21 @@ export const settingsSchema = Type.Object(
       },
       { additionalProperties: false },
     ),
+    network: Type.Optional(
+      Type.Object(
+        {
+          /** Host names (no scheme, no port) the API answers to; loopback is always allowed. */
+          allowedHosts: Type.Array(
+            Type.String({
+              pattern:
+                '^(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?(?:\\.[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)*|\\[[0-9a-f:]+\\])$',
+            }),
+            { minItems: 1, maxItems: 10 },
+          ),
+        },
+        { additionalProperties: false },
+      ),
+    ),
     backup: Type.Object(
       { time: hhmm, retention: Type.Integer({ minimum: 1, maximum: 60 }) },
       { additionalProperties: false },

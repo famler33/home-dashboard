@@ -6,6 +6,7 @@ import { isCacheableApiRoute } from './cache-policy.js';
 import type { Clock } from './clock.js';
 import type { AppConfig } from './config/load-config.js';
 import { registerErrorHandling } from './errors.js';
+import { registerRequestGuard } from './request-guard.js';
 import { redactPaths, type LogOptions } from './logging.js';
 import { healthRoute } from './routes/health.route.js';
 import { snapshotRoute } from './routes/snapshot.route.js';
@@ -68,6 +69,7 @@ export async function buildApp(deps: AppDeps): Promise<FastifyInstance> {
     return payload;
   });
 
+  registerRequestGuard(app, deps.config.settings.network?.allowedHosts ?? []);
   registerErrorHandling(app, deps.staticDir !== undefined);
 
   await app.register(healthRoute({ store: deps.store }));

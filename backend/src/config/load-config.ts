@@ -111,6 +111,11 @@ export function loadConfig(env: NodeJS.ProcessEnv, files: FileReader = nodeFiles
   }
 
   assertCalendarFeeds(settings, credentials);
+  if (!settings.network) {
+    warnings.push(
+      'settings.yaml: network.allowedHosts is not set; only localhost, 127.0.0.1 and [::1] are allowed',
+    );
+  }
 
   return { settings, credentials, warnings };
 }

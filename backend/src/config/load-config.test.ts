@@ -149,7 +149,7 @@ describe('loadConfig credentials', () => {
   it('warns about group or world readable credentials without printing values', () => {
     write('settings.yaml', validSettings);
     write('credentials.yaml', 'weather:\n  apiKey: S3CR3T-TEST\n', 0o644);
-    const { warnings } = load();
+    const warnings = load().warnings.filter((warning) => warning.includes('credentials.yaml'));
     expect(warnings).toHaveLength(1);
     expect(warnings[0]).toMatch(/credentials\.yaml/);
     expect(warnings[0]).not.toContain('S3CR3T-TEST');
@@ -158,7 +158,7 @@ describe('loadConfig credentials', () => {
   it('does not warn for mode 0600', () => {
     write('settings.yaml', validSettings);
     write('credentials.yaml', 'weather:\n  apiKey: x\n', 0o600);
-    expect(load().warnings).toEqual([]);
+    expect(load().warnings.filter((warning) => warning.includes('credentials.yaml'))).toEqual([]);
   });
 
   it('rejects malformed credentials without echoing values', () => {

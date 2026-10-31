@@ -7,7 +7,12 @@ export type ApiErrorCode =
   | 'PAYLOAD_TOO_LARGE'
   | 'INTERNAL_ERROR'
   | 'RADAR_NOT_AVAILABLE'
-  | 'UPSTREAM_UNAVAILABLE';
+  | 'UPSTREAM_UNAVAILABLE'
+  | 'FORBIDDEN_HOST'
+  | 'UNSUPPORTED_MEDIA_TYPE'
+  | 'LIST_LIMIT_REACHED'
+  | 'CATEGORY_NAME_TAKEN'
+  | 'CATEGORY_PROTECTED';
 
 const messages: Record<ApiErrorCode, string> = {
   NOT_FOUND: 'Resource not found',
@@ -16,6 +21,11 @@ const messages: Record<ApiErrorCode, string> = {
   INTERNAL_ERROR: 'Internal server error',
   RADAR_NOT_AVAILABLE: 'No radar data is available yet',
   UPSTREAM_UNAVAILABLE: 'An upstream service is unavailable',
+  FORBIDDEN_HOST: 'This host is not allowed',
+  UNSUPPORTED_MEDIA_TYPE: 'Content type is not supported',
+  LIST_LIMIT_REACHED: 'The list limit has been reached',
+  CATEGORY_NAME_TAKEN: 'A category with this name already exists',
+  CATEGORY_PROTECTED: 'This category cannot be changed',
 };
 
 export const errorEnvelopeSchema = Type.Object({
@@ -41,6 +51,9 @@ export function registerErrorHandling(app: FastifyInstance, serveSpa: boolean): 
     if (status === 413) {
       code = 'PAYLOAD_TOO_LARGE';
       httpStatus = 413;
+    } else if (status === 415) {
+      code = 'UNSUPPORTED_MEDIA_TYPE';
+      httpStatus = 415;
     } else if (status === 404) {
       code = 'NOT_FOUND';
       httpStatus = 404;

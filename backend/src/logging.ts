@@ -7,6 +7,10 @@ export const redactPaths: string[] = [
   '*.apiKey',
   '*.feedUrl',
   '*.calendarUrl',
+  '*.title',
+  '*.name',
+  '*.prerequisite',
+  '*.body',
 ];
 
 export interface LogOptions {
