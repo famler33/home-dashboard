@@ -67,6 +67,13 @@ sources:
         # blue, green, orange, purple, teal or rose
         color: orange
 
+# Network access to the dashboard API (lists and everything else under /api).
+network:
+  # Host names the dashboard answers to, without scheme or port; localhost is always allowed.
+  # Add the name and the LAN address under which tablet and phones open the dashboard.
+  allowedHosts:
+    - dashboard.home
+
 # Nightly copy of the database into the backup folder.
 backup:
   # Local time of the nightly database copy.

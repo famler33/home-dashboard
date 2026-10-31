@@ -9,13 +9,13 @@ import {
   visibleEvents,
   type DayItem,
 } from './agenda';
-import { fitRows, type FitResult } from './fit-rows';
+import { fitRows, type FitResult } from '../fit-rows';
 import { formatDayDate, formatTime, localDate } from './format';
 import { dotClass, Legend, type CalendarProblem } from './Legend';
 import { mergeCalendars } from './merge';
 import type { CalendarTab, TaggedEvent } from './types';
 import { isCalendarSettings } from './types';
-import { useFittingRows } from './useFittingRows';
+import { useFittingRows } from '../useFittingRows';
 
 interface Props {
   snapshot: Snapshot;
