@@ -1,0 +1,82 @@
+{
+  "buildId": "sample",
+  "serverTime": "2026-10-28T10:07:00.000Z",
+  "settings": {
+    "timezone": "Europe/Berlin",
+    "display": { "nightFrom": "22:00", "nightTo": "06:30", "dailyReloadAt": "04:00" }
+  },
+  "sources": [
+    {
+      "id": "lists",
+      "status": "fresh",
+      "data": {
+        "epoch": "sample-epoch",
+        "rev": 8,
+        "truncated": false,
+        "categories": [
+          { "id": "wohnzimmer", "name": "Wohnzimmer" },
+          { "id": "buero", "name": "Büro" },
+          { "id": "balkon", "name": "Balkon" },
+          { "id": "gang", "name": "Gang" },
+          { "id": "grosses-bad", "name": "Großes Bad" },
+          { "id": "kleines-bad", "name": "Kleines Bad" },
+          { "id": "kueche", "name": "Küche" },
+          { "id": "schlafzimmer", "name": "Schlafzimmer" },
+          { "id": "kinderzimmer", "name": "Kinderzimmer" },
+          { "id": "sonstiges", "name": "Sonstiges" }
+        ],
+        "shopping": [
+          {
+            "id": "00000000-0000-4000-8000-000000000006",
+            "title": "Eier",
+            "checkedAt": null,
+            "createdAt": "2026-10-28T10:07:00.000Z"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000002",
+            "title": "Brot",
+            "checkedAt": "2026-10-28T10:06:00.000Z",
+            "createdAt": "2026-10-28T10:02:00.000Z"
+          }
+        ],
+        "todos": [
+          {
+            "id": "00000000-0000-4000-8000-000000000003",
+            "title": "Verkabelung Schreibtisch",
+            "categoryId": "buero",
+            "priority": "high",
+            "effortHours": 1,
+            "prerequisite": null,
+            "checkedAt": null,
+            "createdAt": "2026-10-28T10:03:00.000Z"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000004",
+            "title": "Lichtsituation planen",
+            "categoryId": "wohnzimmer",
+            "priority": "medium",
+            "effortHours": 2,
+            "prerequisite": "Lampen kaufen",
+            "checkedAt": null,
+            "createdAt": "2026-10-28T10:04:00.000Z"
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000005",
+            "title": "Pflanze leiten",
+            "categoryId": "kueche",
+            "priority": "low",
+            "effortHours": null,
+            "prerequisite": null,
+            "checkedAt": null,
+            "createdAt": "2026-10-28T10:05:00.000Z"
+          }
+        ],
+        "counts": { "shoppingOpen": 1, "todoOpen": 3, "todoHigh": 1 }
+      },
+      "lastUpdated": "2026-10-28T10:07:00.000Z",
+      "ageSeconds": 0,
+      "staleAfterSeconds": 7200,
+      "lastErrorCode": null
+    }
+  ]
+}

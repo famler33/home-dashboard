@@ -1,0 +1,93 @@
+{
+  "epoch": "sample-epoch",
+  "rev": 8,
+  "categories": [
+    {
+      "id": "wohnzimmer",
+      "name": "Wohnzimmer",
+      "position": 1,
+      "builtin": false,
+      "openTodoCount": 1
+    },
+    { "id": "buero", "name": "Büro", "position": 2, "builtin": false, "openTodoCount": 1 },
+    { "id": "balkon", "name": "Balkon", "position": 3, "builtin": false, "openTodoCount": 0 },
+    { "id": "gang", "name": "Gang", "position": 4, "builtin": false, "openTodoCount": 0 },
+    {
+      "id": "grosses-bad",
+      "name": "Großes Bad",
+      "position": 5,
+      "builtin": false,
+      "openTodoCount": 0
+    },
+    {
+      "id": "kleines-bad",
+      "name": "Kleines Bad",
+      "position": 6,
+      "builtin": false,
+      "openTodoCount": 0
+    },
+    { "id": "kueche", "name": "Küche", "position": 7, "builtin": false, "openTodoCount": 1 },
+    {
+      "id": "schlafzimmer",
+      "name": "Schlafzimmer",
+      "position": 8,
+      "builtin": false,
+      "openTodoCount": 0
+    },
+    {
+      "id": "kinderzimmer",
+      "name": "Kinderzimmer",
+      "position": 9,
+      "builtin": false,
+      "openTodoCount": 0
+    },
+    { "id": "sonstiges", "name": "Sonstiges", "position": 10, "builtin": true, "openTodoCount": 0 }
+  ],
+  "shopping": [
+    {
+      "id": "00000000-0000-4000-8000-000000000006",
+      "title": "Eier",
+      "checkedAt": null,
+      "createdAt": "2026-10-28T10:07:00.000Z"
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000002",
+      "title": "Brot",
+      "checkedAt": "2026-10-28T10:06:00.000Z",
+      "createdAt": "2026-10-28T10:02:00.000Z"
+    }
+  ],
+  "todos": [
+    {
+      "id": "00000000-0000-4000-8000-000000000003",
+      "title": "Verkabelung Schreibtisch",
+      "categoryId": "buero",
+      "priority": "high",
+      "effortHours": 1,
+      "prerequisite": null,
+      "checkedAt": null,
+      "createdAt": "2026-10-28T10:03:00.000Z"
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000004",
+      "title": "Lichtsituation planen",
+      "categoryId": "wohnzimmer",
+      "priority": "medium",
+      "effortHours": 2,
+      "prerequisite": "Lampen kaufen",
+      "checkedAt": null,
+      "createdAt": "2026-10-28T10:04:00.000Z"
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000005",
+      "title": "Pflanze leiten",
+      "categoryId": "kueche",
+      "priority": "low",
+      "effortHours": null,
+      "prerequisite": null,
+      "checkedAt": null,
+      "createdAt": "2026-10-28T10:05:00.000Z"
+    }
+  ],
+  "suggestions": ["Brot", "Milch"]
+}
