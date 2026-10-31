@@ -1,0 +1,49 @@
+{
+  "version": 1,
+  "tasks": [
+    {
+      "title": "Verkabelung Schreibtisch",
+      "category": "Büro",
+      "priority": "Hoch",
+      "effortHours": 1,
+      "done": false
+    },
+    {
+      "title": "Lichtsituation planen",
+      "category": "Wohnzimmer",
+      "priority": "Hoch",
+      "effortHours": 2,
+      "prerequisite": "Lampen planen & kaufen",
+      "done": false
+    },
+    {
+      "title": "Pflanze Küche und Kinderzimmer stabilisieren",
+      "category": "Wohnzimmer",
+      "priority": "Mittel",
+      "effortHours": 1,
+      "done": false
+    },
+    {
+      "title": "Urlaub planen",
+      "category": "Sonstiges",
+      "priority": "Mittel",
+      "effortHours": 2,
+      "done": false
+    },
+    {
+      "title": "Pflanze leiten",
+      "category": "Küche",
+      "priority": "Niedrig",
+      "effortHours": 0.5,
+      "done": false
+    },
+    { "title": "Dachboden aufräumen", "category": "Keller", "priority": "Niedrig", "done": false },
+    {
+      "title": "Schuhe aussortieren",
+      "category": "Gang",
+      "priority": "Hoch",
+      "effortHours": 0.5,
+      "done": true
+    }
+  ]
+}
