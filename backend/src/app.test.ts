@@ -143,9 +143,15 @@ describe('security and transport', () => {
     }
   });
 
-  it('registers no route that writes configuration or any other state', async () => {
+  it('registers no route that writes configuration and no mutating route outside the lists API', async () => {
     const instance = await build();
     const routes = instance.printRoutes({ commonPrefix: false });
+    for (const line of routes.split('\n')) {
+      if (/POST|PUT|PATCH|DELETE/.test(line)) expect(line).toMatch(/lists/);
+    }
+    expect(routes).not.toMatch(/config|settings|credentials/);
+  });
+});
     expect(routes).not.toMatch(/POST|PUT|PATCH|DELETE/);
   });
 });
@@ -298,6 +304,13 @@ describe('static delivery', () => {
 
   it('falls back to index.html for unknown non-API GET paths', async () => {
     const response = await (await build({ staticDir: staticDir() })).inject('/some/client/route');
+    expect(response.statusCode).toBe(200);
+    expect(response.body).toContain('Dashboard');
+    expect(response.headers['cache-control']).toBe('no-cache');
+  });
+
+  it('serves the single page app for the list page address with no-cache', async () => {
+    const response = await (await build({ staticDir: staticDir() })).inject('/listen');
     expect(response.statusCode).toBe(200);
     expect(response.body).toContain('Dashboard');
     expect(response.headers['cache-control']).toBe('no-cache');
