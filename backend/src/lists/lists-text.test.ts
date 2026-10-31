@@ -20,12 +20,14 @@ describe('list text rules', () => {
   });
 
   it('strips control, bidi, zero-width and line separator characters', () => {
-    expect(sanitiseText('Mi\u0007lch​‮⁦ ok ', 80)).toBe('Milch ok');
-    expect(sanitiseText('\u0000​', 80)).toBeNull();
+    const chars = (...codes: number[]) => String.fromCodePoint(...codes);
+    const messy = `Mi${chars(7)}lch${chars(0x200b, 0x202e, 0x2066)} ok${chars(0x2028)}`;
+    expect(sanitiseText(messy, 80)).toBe('Milch ok');
+    expect(sanitiseText(chars(0, 0x200b), 80)).toBeNull();
   });
 
   it('counts characters after stripping', () => {
-    expect(sanitiseText('a​'.repeat(80), 80)).toHaveLength(80);
+    expect(sanitiseText(`a${String.fromCodePoint(0x200b)}`.repeat(80), 80)).toHaveLength(80);
   });
 
   it('builds the same key for case and umlaut variants', () => {
