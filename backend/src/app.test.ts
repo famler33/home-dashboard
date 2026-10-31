@@ -152,9 +152,6 @@ describe('security and transport', () => {
     expect(routes).not.toMatch(/config|settings|credentials/);
   });
 });
-    expect(routes).not.toMatch(/POST|PUT|PATCH|DELETE/);
-  });
-});
 
 // Covers: NFR-5 (error shape), FR-9
 describe('error envelope', () => {
