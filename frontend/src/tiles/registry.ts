@@ -5,6 +5,7 @@ import { DemoTile } from './demo/DemoTile';
 import { weatherHeading } from './weather/heading';
 import { isWeatherPayload } from './weather/types';
 import { WeatherTile } from './weather/WeatherTile';
+import { ListsDetail } from './lists/ListsDetail';
 import { ListsTileContent } from './lists/ListsTile';
 import { PlaceholderTile } from './PlaceholderTile';
 import type { TileDefinition } from './types';
@@ -23,6 +24,7 @@ export const tileRegistry: readonly TileDefinition[] = [
     sourceId: 'lists',
     requiresSource: true,
     replaces: 'lists',
+    detail: ListsDetail,
     detailLabelKey: 'lists.open',
     tablet: { col: 1, row: 5, colSpan: 5, rowSpan: 2 },
     phoneOrder: 0,

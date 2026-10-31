@@ -56,7 +56,11 @@ describe('list page', () => {
 
   it('runs no drift, night schedule or kiosk logic on the list page', async () => {
     window.history.pushState({}, '', '/listen');
-    render(<App />);
+    render(
+      <I18nextProvider i18n={i18n}>
+        <App />
+      </I18nextProvider>,
+    );
     await screen.findByRole('region', { name: de.lists.shopping });
     expect(screen.queryByTestId('drift-wrapper')).toBeNull();
     expect(screen.queryByText(de.kiosk.tapForFullscreen)).toBeNull();
@@ -65,11 +69,19 @@ describe('list page', () => {
 
   it('opens the list page at /listen and the dashboard everywhere else', async () => {
     window.history.pushState({}, '', '/');
-    const dashboard = render(<App />);
+    const dashboard = render(
+      <I18nextProvider i18n={i18n}>
+        <App />
+      </I18nextProvider>,
+    );
     await waitFor(() => expect(screen.queryByRole('heading', { level: 1 })).toBeNull());
     dashboard.unmount();
     window.history.pushState({}, '', '/listen/');
-    render(<App />);
+    render(
+      <I18nextProvider i18n={i18n}>
+        <App />
+      </I18nextProvider>,
+    );
     expect(
       await screen.findByRole('heading', { level: 1, name: de.tiles.lists }),
     ).toBeInTheDocument();
