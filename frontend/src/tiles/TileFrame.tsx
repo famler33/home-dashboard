@@ -1,4 +1,4 @@
-import { Clock } from 'lucide-react';
+import { ChevronRight, Clock } from 'lucide-react';
 import { useId, type CSSProperties, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { relativeAge, type TileStatus } from '../snapshot/freshness';
@@ -16,6 +16,9 @@ interface Props {
   stateTexts?: Partial<Record<'never-loaded' | 'error', StateTextKeys>> | undefined;
   /** Show the update footer for fresh data too (default); stale data always shows it. */
   freshFooter?: boolean;
+  /** Set when the tile offers a detail view: the heading row becomes a button. */
+  onOpenDetail?: ((trigger: HTMLElement) => void) | undefined;
+  detailLabel?: string | undefined;
   children?: ReactNode;
 }
 
@@ -40,6 +43,8 @@ export function TileFrame({
   index,
   stateTexts,
   freshFooter = true,
+  onOpenDetail,
+  detailLabel,
   children,
 }: Props) {
   const { t } = useTranslation();
@@ -56,9 +61,27 @@ export function TileFrame({
       style={{ '--i': index } as CSSProperties}
       className="animate-tile-in relative flex h-full min-h-0 flex-col gap-3 overflow-hidden rounded-3xl bg-surface-raised p-5 shadow-sm tablet-short:gap-2 tablet-short:p-3"
     >
-      <h2 id={headingId} className="self-start text-caption font-medium text-ink-muted">
-        {title}
-      </h2>
+      <div className="relative self-stretch">
+        <h2 id={headingId} className="self-start text-caption font-medium text-ink-muted">
+          {title}
+        </h2>
+        {onOpenDetail && (
+          <button
+            type="button"
+            aria-haspopup="dialog"
+            aria-label={detailLabel}
+            onClick={(event) => {
+              event.stopPropagation();
+              onOpenDetail(event.currentTarget);
+            }}
+            onPointerUp={(event) => event.stopPropagation()}
+            className="absolute -top-2 right-0 flex min-h-14 min-w-14 items-center justify-end rounded-2xl pr-1 text-ink-muted focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
+            style={{ left: 0 }}
+          >
+            <ChevronRight aria-hidden="true" className="h-[1.4em] w-[1.4em]" />
+          </button>
+        )}
+      </div>
       <div className="min-h-0 flex-1 overflow-hidden">
         {showsContent ? (
           children

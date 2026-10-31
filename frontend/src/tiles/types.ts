@@ -30,6 +30,10 @@ export interface TileDefinition {
   freshFooter?: boolean;
   /** Backend source whose freshness this tile shows. */
   sourceId?: string | undefined;
+  /** Full-screen detail view opened from the heading on the wall tablet. */
+  detail?: ComponentType<{ onClose(): void }>;
+  /** Accessible name of the heading button and of the dialog. */
+  detailLabelKey?: ParseKeys;
   /** The tile shows when any of these sources is in the snapshot (with `requiresSource`). */
   sourceIds?: readonly string[];
   /** Entry that drives the tile frame when several sources feed the tile. */

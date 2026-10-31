@@ -8,6 +8,8 @@ export const de = {
     news: 'Nachrichten',
     demo: 'Demo',
   },
+  detail: { back: 'Zurück' },
+  lists: { open: 'Listen öffnen' },
   placeholder: {
     title: 'Kommt bald',
     hint: 'Diese Kachel wird in einer späteren Version freigeschaltet.',

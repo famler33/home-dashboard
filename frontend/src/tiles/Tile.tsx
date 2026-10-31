@@ -1,6 +1,8 @@
 import { useTranslation } from 'react-i18next';
 import { deriveTileStatus } from '../snapshot/freshness';
 import { effectiveAgeSeconds } from '../snapshot/freshness';
+import { useDetail } from '../shell/detail-context';
+import { useShell } from '../shell/shell-context';
 import { useSnapshot } from '../snapshot/useSnapshot';
 import { TileBoundary } from './TileBoundary';
 import { TileFrame } from './TileFrame';
@@ -17,11 +19,20 @@ function ConnectedTile({ definition, index }: Props) {
   const { t } = useTranslation();
   const { snapshot, receivedAtMonotonic, nowMono } = useSnapshot();
   const { Component, sourceId } = definition;
+  const { open } = useDetail();
+  const { layout } = useShell();
+  const detailProps =
+    definition.detail && layout === 'tablet'
+      ? {
+          onOpenDetail: (trigger: HTMLElement) => open(definition.id, trigger),
+          detailLabel: t(definition.detailLabelKey ?? definition.titleKey),
+        }
+      : {};
 
   if (sourceId === undefined && definition.deriveEntry === undefined) {
     const title = definition.heading?.(null, t) ?? t(definition.titleKey);
     return (
-      <TileFrame title={title} status="fresh" ageSeconds={null} index={index}>
+      <TileFrame title={title} status="fresh" ageSeconds={null} index={index} {...detailProps}>
         <Component data={null} />
       </TileFrame>
     );
@@ -51,6 +62,7 @@ function ConnectedTile({ definition, index }: Props) {
       index={index}
       stateTexts={definition.stateTexts}
       freshFooter={definition.freshFooter !== false}
+      {...detailProps}
     >
       <Component data={source?.data ?? null} />
     </TileFrame>
