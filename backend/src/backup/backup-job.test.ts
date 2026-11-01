@@ -3,6 +3,7 @@ import {
   mkdirSync,
   mkdtempSync,
   readdirSync,
+  readFileSync,
   rmSync,
   statSync,
   writeFileSync,
@@ -61,6 +62,30 @@ describe('backup job', () => {
     });
     expect(copy.pragma('integrity_check', { simple: true })).toBe('ok');
     copy.close();
+  });
+
+  it('leaves news headlines out of the copy and keeps them in the live database', async () => {
+    const store = createSnapshotStore(db);
+    store.recordSuccess('demo', { value: 1 }, 1_000);
+    store.recordSuccess('news-local', { headlines: [{ title: 'Streng geheime Schlagzeile' }] }, 1_000);
+    store.recordSuccess('news-global', { headlines: [{ title: 'Noch eine Schlagzeile' }] }, 1_000);
+    const target = join(dir, 'backup');
+    await createBackupJob({
+      db,
+      dir: target,
+      retention: 14,
+      clock: clockAt('2026-10-28T03:00:00Z'),
+      logger,
+    })();
+
+    const file = join(target, 'dashboard-20261028-030000.sqlite');
+    const copy = new Database(file, { readonly: true });
+    expect(copy.prepare('SELECT source_id FROM source_state').all()).toEqual([
+      { source_id: 'demo' },
+    ]);
+    copy.close();
+    expect(readFileSync(file).includes('Streng geheime Schlagzeile')).toBe(false);
+    expect(store.get('news-local')?.payload).not.toBeNull();
   });
 
   it('creates the backup directory with mode 0700', async () => {

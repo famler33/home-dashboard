@@ -71,6 +71,30 @@ describe('loadConfig', () => {
     expect(load().settings.sources.weather?.enabled).toBe(false);
   });
 
+  it('treats a missing sources.news key as enabled and accepts an explicit switch', () => {
+    write('settings.yaml', validSettings);
+    expect(load().settings.sources.news?.enabled ?? true).toBe(true);
+    write(
+      'settings.yaml',
+      validSettings.replace(
+        'demo:\n    enabled: false',
+        'demo:\n    enabled: false\n  news:\n    enabled: false',
+      ),
+    );
+    expect(load().settings.sources.news?.enabled).toBe(false);
+  });
+
+  it('rejects unknown keys under sources.news', () => {
+    write(
+      'settings.yaml',
+      validSettings.replace(
+        'demo:\n    enabled: false',
+        'demo:\n    enabled: false\n  news:\n    enabled: true\n    url: https://example.org/feed',
+      ),
+    );
+    expect(() => load()).toThrow();
+  });
+
   it('rejects a weather switch that is not a boolean naming the key', () => {
     write(
       'settings.yaml',

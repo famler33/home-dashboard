@@ -13,7 +13,7 @@ const settings = `
 timezone: Europe/Berlin
 location: { name: Zuhause, latitude: 52.52, longitude: 13.405 }
 display: { nightFrom: "22:00", nightTo: "06:30", dailyReloadAt: "04:00" }
-sources: { demo: { enabled: true }, weather: { enabled: false } }
+sources: { demo: { enabled: true }, weather: { enabled: false }, news: { enabled: false } }
 backup: { time: "03:00", retention: 14 }
 `;
 
@@ -140,8 +140,8 @@ describe('startServer weather wiring', () => {
 
   const settingsWith = (weather: string) =>
     settings.replace(
-      'sources: { demo: { enabled: true }, weather: { enabled: false } }',
-      `sources: { demo: { enabled: false }${weather} }`,
+      'sources: { demo: { enabled: true }, weather: { enabled: false }, news: { enabled: false } }',
+      `sources: { demo: { enabled: false }${weather}, news: { enabled: false } }`,
     );
 
   async function snapshot(url: string) {
@@ -416,5 +416,83 @@ describe('startServer calendar wiring', () => {
     expect(output).toContain('calendar-family');
     expect(output).not.toContain('SENTINEL');
     expect(output).not.toContain('icloud.com');
+  });
+});
+
+// Covers: FR-1, FR-6, FR-7, AC-1, AC-16, AC-19
+describe('startServer news wiring', () => {
+  const newsNow = () => Date.parse('2026-11-01T10:30:00Z');
+  const feedText = (name: string) =>
+    readFileSync(new URL(`../test/fixtures/news/${name}`, import.meta.url), 'utf8');
+
+  const settingsWithNews = (news: string) =>
+    settings.replace(
+      'sources: { demo: { enabled: true }, weather: { enabled: false }, news: { enabled: false } }',
+      `sources: { demo: { enabled: false }, weather: { enabled: false }${news} }`,
+    );
+
+  function newsFetch(failLocal = false) {
+    const hosts: string[] = [];
+    const fetchImpl = vi.fn(async (input: URL | string | Request) => {
+      const url = new URL(
+        typeof input === 'string' ? input : input instanceof URL ? input.href : input.url,
+      );
+      hosts.push(url.hostname);
+      const xml = { headers: { 'content-type': 'text/xml' } };
+      if (url.hostname === 'www.rbb24.de')
+        return failLocal
+          ? new Response('down', { status: 503 })
+          : new Response(feedText('rbb24.sample.xml'), xml);
+      if (url.hostname === 'www.tagesschau.de')
+        return new Response(feedText('tagesschau.sample.xml'), xml);
+      return new Response('unexpected host', { status: 500 });
+    }) as unknown as typeof fetch;
+    return { fetchImpl, hosts };
+  }
+
+  async function newsSources(url: string) {
+    const body = (await (await fetch(`${url}/api/v1/snapshot`)).json()) as {
+      sources: { id: string; status: string; data: { headlines?: unknown[] } | null }[];
+    };
+    return body.sources.filter((source) => source.id.startsWith('news-'));
+  }
+
+  const until = async (check: () => Promise<boolean>) => {
+    for (let i = 0; i < 100; i += 1) {
+      if (await check()) return;
+      await new Promise((resolve) => setTimeout(resolve, 20));
+    }
+  };
+
+  it('registers both news sources when the key is missing and calls only the two fixed hosts', async () => {
+    writeFileSync(join(root, 'config', 'settings.yaml'), settingsWithNews(''));
+    const { fetchImpl, hosts } = newsFetch();
+    server = await startServer(env(), { fetchImpl, now: newsNow });
+    await until(async () => (await newsSources(server!.url)).every((s) => s.status === 'fresh'));
+    const sources = await newsSources(server.url);
+    expect(sources.map((s) => s.id).sort()).toEqual(['news-global', 'news-local']);
+    expect(sources.every((s) => (s.data?.headlines?.length ?? 0) > 0)).toBe(true);
+    expect(new Set(hosts)).toEqual(new Set(['www.rbb24.de', 'www.tagesschau.de']));
+  });
+
+  it('registers no news source when the switch is off', async () => {
+    writeFileSync(
+      join(root, 'config', 'settings.yaml'),
+      settingsWithNews(', news: { enabled: false }'),
+    );
+    const { fetchImpl, hosts } = newsFetch();
+    server = await startServer(env(), { fetchImpl, now: newsNow });
+    expect(await newsSources(server.url)).toEqual([]);
+    expect(hosts).toEqual([]);
+  });
+
+  it('keeps the global source fresh when the local feed fails', async () => {
+    writeFileSync(join(root, 'config', 'settings.yaml'), settingsWithNews(''));
+    const { fetchImpl } = newsFetch(true);
+    server = await startServer(env(), { fetchImpl, now: newsNow });
+    await until(async () => (await newsSources(server!.url)).some((s) => s.id === 'news-global' && s.status === 'fresh'));
+    const byId = Object.fromEntries((await newsSources(server.url)).map((s) => [s.id, s.status]));
+    expect(byId['news-global']).toBe('fresh');
+    expect(byId['news-local']).toBe('error');
   });
 });
