@@ -6,6 +6,7 @@ description: >
   writing code, when reviewing diffs, and whenever naming, structure, or convention
   questions arise.
 tools: Read, Grep, Glob
+model: haiku
 ---
 
 # Code Style Advisor
