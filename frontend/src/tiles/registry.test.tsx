@@ -204,3 +204,37 @@ describe('lists tile registration', () => {
     expect(first?.id).toBe('lists-live');
   });
 });
+
+// Covers: FR-1, FR-10 (news tile registration)
+describe('news tile registration', () => {
+  const live = tileRegistry.find((tile) => tile.id === 'news-live');
+
+  it('registers the live news tile in the area of the news placeholder', () => {
+    const placeholder = tileRegistry.find((tile) => tile.id === 'news');
+    expect(live).toBeDefined();
+    expect(live?.tablet).toEqual(placeholder?.tablet);
+    expect(live?.phoneOrder).toBe(placeholder?.phoneOrder);
+  });
+
+  it('replaces the placeholder and the demo tile once a news source exists', () => {
+    const snapshot = snapshotFixture({
+      sources: [sourceFixture({ id: 'news-local' }), sourceFixture({ id: 'demo' })],
+    });
+    const ids = visibleTiles(tileRegistry, snapshot).map((tile) => tile.id);
+    expect(ids).toContain('news-live');
+    expect(ids).not.toContain('news');
+    expect(ids).not.toContain('demo');
+  });
+
+  it('keeps the placeholder while no news source exists', () => {
+    const ids = visibleTiles(tileRegistry, snapshotFixture({ sources: [] })).map((tile) => tile.id);
+    expect(ids).toContain('news');
+    expect(ids).not.toContain('news-live');
+  });
+
+  it('declares German never-loaded and error texts', () => {
+    expect(live?.stateTexts?.['never-loaded']?.titleKey).toBe('news.states.neverLoaded.title');
+    expect(live?.stateTexts?.error?.titleKey).toBe('news.states.error.title');
+  });
+});
+

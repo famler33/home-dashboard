@@ -349,3 +349,29 @@ describe('Tile with a derived entry', () => {
     );
   });
 });
+
+// Covers: AC-23 (dense tile frame for the news tile)
+describe('TileFrame dense mode', () => {
+  it('shows no footer, even for stale data, and hides the heading visually on short screens', () => {
+    renderWithProviders(
+      <TileFrame title="Nachrichten" status="stale" ageSeconds={3000} index={0} dense>
+        <p>Inhalt</p>
+      </TileFrame>,
+    );
+    expect(screen.queryByTestId('tile-footer')).toBeNull();
+    expect(screen.getByRole('heading', { name: 'Nachrichten' }).className).toContain(
+      'tablet-short:sr-only',
+    );
+  });
+
+  it('keeps the footer and the visible heading when not dense', () => {
+    renderWithProviders(
+      <TileFrame title="Demo" status="stale" ageSeconds={3000} index={0}>
+        <p>Inhalt</p>
+      </TileFrame>,
+    );
+    expect(screen.getByTestId('tile-footer')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Demo' }).className).not.toContain('sr-only');
+  });
+});
+
