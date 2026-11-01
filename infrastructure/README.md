@@ -116,7 +116,7 @@ aus der letzten Sicherung wiederherstellen (nächster Abschnitt).
 
 Jede Nacht zur Zeit `backup.time` schreibt der Container eine konsistente Kopie der Datenbank nach `backup/`
 (`dashboard-JJJJMMTT-HHMMSS.sqlite`) und behält die letzten `backup.retention` Dateien. Die Sicherungen
-enthalten nur die Datenbank, nie Einstellungen oder Zugangsdaten. Den Ordner `backup/` in Hyper Backup oder
+enthalten nur die Datenbank, nie Einstellungen, Zugangsdaten oder Nachrichten-Schlagzeilen. Den Ordner `backup/` in Hyper Backup oder
 eine andere NAS-Sicherung aufnehmen.
 
 Wiederherstellen:
@@ -188,6 +188,33 @@ das Geheimnis: Wer sie kennt, kann diesen Kalender lesen.
 - **Netzwerk:** Die Firewall des NAS muss ausgehendes HTTPS zu `calendar.google.com` und `*.icloud.com` erlauben.
 - **Einzeln abschalten:** `enabled: false` je Kalender; ohne `sources.calendar` oder mit `enabled: false` bleibt der
   Platzhalter der Kachel.
+
+## Nachrichten
+
+Die Nachrichten-Kachel braucht keinen Schlüssel und kein Konto. Sie liest zwei öffentliche RSS-Feeds, ausgehend
+per HTTPS:
+
+| Teil | Feed (Host) | Takt |
+| ---- | ----------- | ---- |
+| Regional (Berlin und Brandenburg) | rbb24 (`www.rbb24.de`) | alle 15 Min. |
+| Welt (Deutschland und international) | Tagesschau (`www.tagesschau.de`) | alle 15 Min. |
+
+- **Inhalt:** Je Feed nur die aktuellen fünf Überschriften (Titel, Zeit, Quelle). Es gibt weder Links noch Bilder
+  noch Kurztexte; die Kachel zeigt die Schlagzeilen im Wechsel und das Handy als Liste.
+- **Nutzungsbedingungen:** Der rbb24-Feed erlaubt die Nutzung nur für nicht-kommerzielle Angebote, kann jederzeit
+  untersagt werden und darf nicht archiviert werden. Das Dashboard hält deshalb nur die aktuellen Titel
+  (jeder Abruf überschreibt sie) und lässt sie aus den nächtlichen Sicherungen im Ordner `backup/` heraus. Nach
+  einer Wiederherstellung zeigt die Kachel „Schlagzeilen noch nicht geladen“, bis der erste Abruf durch ist.
+- **Quellenangaben:** Jede Schlagzeile nennt ihre Quelle (rbb24, Tagesschau). Diese Angabe nicht entfernen.
+- **Ausschalten:** `sources.news.enabled: false` in `settings.yaml` schaltet beide Feeds gemeinsam ab (Container
+  neu starten); ohne den Schlüssel ist die Kachel eingeschaltet. Die Feed-Adressen stehen fest im Code und lassen
+  sich nicht über die Einstellungen ändern.
+- **Feeds prüfen:** Im Ordner `backend/` zeigt `node --import tsx scripts/news-live-check.mjs`, ob beide Feeds
+  erreichbar sind und noch Schlagzeilen liefern (nur Anzahl und Alter, keine Titel). Es gehört zu keinem Testlauf.
+- **Störungen:** Fällt ein Feed aus, bleibt der andere sichtbar; die Schlagzeilen des ausgefallenen Feeds tragen
+  nach 45 Minuten den Hinweis „Veraltet“ mit Alter. Fällt der rbb24-Feed dauerhaft weg oder wird die Nutzung
+  untersagt, `sources.news.enabled` auf `false` setzen.
+- **Netzwerk:** Die Firewall des NAS muss ausgehendes HTTPS zu diesen beiden Hosts erlauben.
 
 ## Tablet einrichten
 
