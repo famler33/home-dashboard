@@ -79,6 +79,21 @@ test.describe('lists on the wall tablet', () => {
     await expect(dialog).toHaveCount(0);
   });
 
+  test('keeps the clock and the other tiles running while the view is open', async ({ page }) => {
+    await page.clock.install({ time: new Date('2026-10-28T10:00:00Z') });
+    await page.goto('/');
+    await expect(column(page, 'Einkauf')).toBeVisible();
+    await page.clock.runFor(1200);
+    await tile(page).getByRole('button', { name: 'Listen öffnen' }).click();
+    const dialog = page.getByRole('dialog', { name: 'Listen öffnen' });
+    await expect(dialog).toBeVisible();
+    const before = await page.locator('time').first().textContent();
+    await page.clock.runFor(61_000);
+    await expect(page.locator('time').first()).not.toHaveText(before ?? '');
+    await expect(page.getByRole('region').filter({ hasNot: dialog }).first()).toBeAttached();
+    await expect(dialog).toBeVisible();
+  });
+
   test('adds a to-do with category and priority and shows it on the tile', async ({ page }) => {
     const dialog = await openDetail(page);
     await dialog.getByRole('button', { name: 'Aufgabe hinzufügen' }).click();

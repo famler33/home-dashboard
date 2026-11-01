@@ -12,6 +12,8 @@ import { DetailContext } from '../../shell/detail-context';
 import { ShellContext } from '../../shell/shell-context';
 import { SnapshotContext } from '../../snapshot/snapshot-context';
 import { contextFixture } from '../../test-utils';
+import { Tile } from '../Tile';
+import { tileRegistry } from '../registry';
 import { ListsTile } from './ListsTile';
 
 const state = golden as unknown as ListsState;
@@ -286,5 +288,53 @@ describe('ListsTile on the phone and in other variants', () => {
     );
     show({ instance: createI18n(pseudo, 'xx') });
     expect(screen.getByRole('region', { name: `§${de.lists.shopping}` })).toBeInTheDocument();
+  });
+});
+
+// Covers: AC-13
+describe('ListsTile states', () => {
+  const definition = tileRegistry.find((entry) => entry.id === 'lists-live')!;
+  const withStatus = (status: 'never-loaded' | 'error'): Snapshot => {
+    const copy = JSON.parse(JSON.stringify(snapshot)) as Snapshot;
+    const source = copy.sources.find((entry) => entry.id === 'lists')!;
+    source.status = status;
+    source.data = null;
+    return copy;
+  };
+  const mount = (snap: Snapshot, fetchImpl: typeof fetch) =>
+    render(
+      <I18nextProvider i18n={i18n}>
+        <SnapshotContext.Provider value={contextFixture(snap)}>
+          <ShellContext.Provider value={{ layout: 'tablet', theme: 'day' }}>
+            <DetailContext.Provider value={{ open: vi.fn() }}>
+              <ListsProvider fetchImpl={fetchImpl}>
+                <Tile definition={definition} index={0} />
+              </ListsProvider>
+            </DetailContext.Provider>
+          </ShellContext.Provider>
+        </SnapshotContext.Provider>
+      </I18nextProvider>,
+    );
+  const ok = () => vi.fn(async () => json(state)) as unknown as typeof fetch;
+
+  it('says the lists are not loaded yet before the first data arrives', () => {
+    mount(withStatus('never-loaded'), ok());
+    expect(screen.getByText(de.lists.states.neverLoaded.title)).toBeInTheDocument();
+  });
+
+  it('says the lists are unavailable when the first load failed', () => {
+    mount(withStatus('error'), ok());
+    expect(screen.getByText(de.lists.states.error.title)).toBeInTheDocument();
+  });
+
+  it('keeps the last lists on screen when a refresh fails', async () => {
+    const failing = vi.fn(async () => {
+      throw new Error('offline');
+    }) as unknown as typeof fetch;
+    mount(snapshot, failing);
+    await flush();
+    expect(screen.getByRole('region', { name: de.lists.shopping })).toBeInTheDocument();
+    expect(screen.getByRole('region', { name: de.lists.todos })).toBeInTheDocument();
+    expect(screen.queryByText(de.lists.states.error.title)).toBeNull();
   });
 });
