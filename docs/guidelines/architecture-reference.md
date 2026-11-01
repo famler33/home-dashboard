@@ -11,7 +11,7 @@ respective coding guidelines.
 | -------- | ------ |
 | Frontend | React, Vite, TypeScript (pnpm); Tailwind CSS 3 with design tokens; i18next (German); CSS animation plus Motion for the rolling clock; lucide icons; self-hosted variable font |
 | Backend  | Node.js 22, Fastify 5, TypeScript, TypeBox schemas, YAML configuration |
-| Database | SQLite via better-sqlite3 (source cache, later lists); numbered SQL migrations |
+| Database | SQLite via better-sqlite3 (source cache, radar document, lists); numbered SQL migrations |
 | Infra    | One Docker image (linux/amd64) and Docker Compose on a Synology NAS (Container Manager), home network only |
 | CI/CD    | None yet (local repository); one-command deploy script from the Mac |
 
@@ -90,11 +90,26 @@ Events come from a shared Apple (iCloud) calendar and two Google work calendars
 (one per person), merged into one view. Access method per source (ICS link, CalDAV,
 API): <TODO: offen>. Calendar access is read-only.
 
-### Existing shopping list is reused
+### Lists are rebuilt in the repository
 
-A shopping list app (Tailwind, running on the NAS) already exists. Whether it is
-integrated, embedded or rebuilt inside this repository is <TODO: offen> and is decided
-in the epic that covers lists.
+The shopping list and the to-dos live in the dashboard's own SQLite database; the older apps are not
+integrated or embedded. Only the open tasks of the old to-do app can be imported once through the
+`import-todos` command (a JSON file in `data/imports/`, all or nothing, counts only in the output).
+
+### Writable data: REST outside the snapshot
+
+Data that people edit does not travel through the snapshot. Lists have their own REST routes under
+`/api/v1/lists` that return the full state; the snapshot carries only a compact summary (source `lists`) so the
+tile renders with the rest of the dashboard. Every list change runs in one transaction that also bumps a
+revision counter and republishes the summary. The client is optimistic: it applies a change at once, queues
+it with a client-generated id and sends changes one after another; creating and removing are idempotent by id,
+retries are safe, and a state is accepted only if its `epoch`/`rev` is newer than the one shown. State from the
+server is held back while the user is editing. No query library is used.
+
+### Request guard instead of login
+
+Because there is no login, `src/request-guard.ts` checks the `Host` header against `network.allowedHosts`
+and refuses cross-origin mutations (rules in the security guidelines). It applies to every `/api/` route.
 
 ### Display-first design
 

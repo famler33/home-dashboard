@@ -71,7 +71,11 @@ Additional checks:
   Mac, for example Colima or Docker Desktop) and are skipped otherwise. A skipped run leaves the
   affected criteria unverified.
 - Accelerated soak (virtual clock, heap sample): `pnpm run e2e:soak` from `frontend/`
-  (`SOAK_MINUTES`, default 10). It is excluded from the default Playwright run.
+  (`SOAK_MINUTES`, default 10). It is excluded from the default Playwright run. `frontend/e2e/soak.spec.ts`
+  holds one `@soak` test per long-running part (base polling, lists being edited); run them serially
+  (`--workers=1`) so the heap samples are not disturbed by parallel browsers.
+- The lists end-to-end tests run against a fresh database per Playwright start, because removed rows keep
+  counting towards the row limit for an hour.
 - Playwright starts the production build through the real backend on port 4173; the browser
   `webServer` command builds the SPA, so no separate build step is needed. Playwright mocks only the
   snapshot route and uses its fake clock; its screenshots (`frontend/e2e/screenshots/`) are generated

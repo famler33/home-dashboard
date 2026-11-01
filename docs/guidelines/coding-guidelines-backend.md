@@ -20,7 +20,9 @@ after every epic.
 `src/main.ts` (entry, signals), `src/server.ts` (composition root `startServer(env)`),
 `src/app.ts` (`buildApp(deps)`), `src/errors.ts`, `src/logger.ts` (logger interface),
 `src/logging.ts` (redaction paths), `src/clock.ts`, `src/config/`,
-`src/routes/`, `src/sources/` (contract, runner, registration, one file per source),
+`src/request-guard.ts`, `src/routes/`, `src/lists/` (service, routes, text helpers, summary source),
+`src/sources/` (contract, runner, registration, one file per source), `src/cli/` (one-off commands run with
+`node dist/cli/<name>.js`, for example the to-do import),
 `src/snapshot/`, `src/cache/`, `src/scheduler/`, `src/backup/`, `src/db/` (+ `migrations/`).
 Cross-cutting and repository tests live in `test/` (helpers in `test/helpers/`, shared fixtures
 in `test/fixtures/`).
@@ -84,6 +86,13 @@ in `test/fixtures/`).
   next to the compiled code. An application older than the database refuses to start
   (`DB_SCHEMA_NEWER_THAN_APP`). Only the store modules touch their tables.
 - Backups use the online backup API (never a file copy of a live database).
+
+- Writable domains (lists) are a service module over their tables (all mutations in one transaction, idempotent
+  by client id), a routes plugin with TypeBox schemas that reject unknown properties and a per-route `bodyLimit`,
+  and a source that only publishes a summary. Domain failures are a small error class whose codes map to the
+  shared envelope.
+- Command-line tools open the database through the same `openDatabase` and the same service as the server,
+  accept files only from a fixed folder under `DATA_DIR`, and print counts, never content.
 
 ## Logging
 

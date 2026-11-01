@@ -45,6 +45,12 @@ in the home network for lists.
 - A tile with several views (weather) rotates calmly on the wall, tells the active view with indicators
   (at least 56 px touch targets, not colour alone), supports tap, swipe and direct selection, pauses the
   rotation for 60 s after input and stops it while its data is stale. The phone shows all parts at once.
+- A tile with editable content (lists) opens a full-screen detail view from its heading on the wall: a dialog
+  with a back control (at least 56 px, labelled), Escape support, and automatic closing after two quiet minutes
+  unless a draft is open. Rows, checkboxes and buttons there are at least 56 px high on the wall and 44 px on
+  the phone; a tile that cannot show everything says "+ n weitere" and the line opens the detail view.
+- Edits show their state without blocking: a clock icon while saving, a warning icon with "Nicht gespeichert"
+  and a retry action when it failed, and "Rückgängig" for a short time after a check or removal.
 - Tile credits and licence notices stay visible on the tile; map overlays never cover the data, so credits
   and legends sit beside or below the map except on short screens.
 

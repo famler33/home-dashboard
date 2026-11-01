@@ -29,6 +29,18 @@ assets: calendar data (including work calendars) and API/calendar credentials.
 
 - Not applicable while single-household. Calendar access is read-only.
 
+## Request Guard
+
+- Every `/api/` request passes a guard without any login. The `Host` header must be `localhost`,
+  `127.0.0.1`, `[::1]` or a name in `network.allowedHosts` of `settings.yaml` (names only, no scheme or
+  port, at most ten); otherwise the answer is `403 FORBIDDEN_HOST`. This stops DNS rebinding. Without
+  `network.allowedHosts` only loopback is allowed and the start logs a warning.
+- Mutating requests (`POST`, `PUT`, `PATCH`, `DELETE`) are refused with `403 FORBIDDEN_HOST` when an `Origin`
+  header names another host than the request's own, or when `Sec-Fetch-Site` is `cross-site`. Requests
+  without an `Origin` header (curl, scripts on the NAS) pass.
+- The allow-list is the only access control; it is not authentication. A new name or a new NAS address must
+  be added to the list and the container restarted.
+
 ## Anonymous / Operational Endpoints
 
 - `GET /api/v1/health` is unauthenticated and returns exactly `{"status":"ok"}` or

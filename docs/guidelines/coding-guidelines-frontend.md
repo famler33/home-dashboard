@@ -18,8 +18,10 @@ after every epic.
 - The dashboard is composed of self-contained widgets (weather, calendar, lists,
   news), each with its own loading, empty, stale and error state.
 - Data fetching: one `SnapshotProvider` polls the snapshot and exposes it through `useSnapshot()`;
-  tiles derive their state with the pure functions in `snapshot/freshness.ts`. No query library
-  (revisit when list mutations need optimistic updates). Timers and listeners are always cleaned up.
+  tiles derive their state with the pure functions in `snapshot/freshness.ts`. No query library. The
+  lists are the one writable part: `ListsProvider` keeps a pure reducer (`lists/listsReducer.ts`) with the last
+  server state plus a queue of pending operations, sends them one at a time with client-generated ids and
+  rolls forward from newer server states only (see the architecture reference). Timers and listeners are always cleaned up.
 - Every tile uses `TileFrame`/`Tile`, which provide all states and a per-tile error boundary; a tile
   only supplies its content component and a registry entry (`tiles/registry.ts`).
 
@@ -72,6 +74,12 @@ after every epic.
   `Date.now()` in render; timers live in hooks with cleanup, and tests drive them with fake timers and explicit
   flushes. Canvas drawing takes raw data and is tested with a canvas mock.
 - The strict react-hooks lint rules apply: no state set in effects for derived values, no impure calls in render.
+
+- A tile may offer a full-screen detail view (`TileDefinition.detail`, opened from the heading through
+  `useDetail()`); the shell renders it as a modal `DetailOverlay` inside the drift container. A detail
+  component that holds a draft reports it with `DetailBusyContext` so the overlay does not close it on idle.
+- Editors that also run on a phone page (`/listen`) live in `src/lists/` and take a `layout` prop; the page
+  component in `src/pages/` adds only the header.
 
 ## File Structure
 
