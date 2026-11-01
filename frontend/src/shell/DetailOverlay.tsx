@@ -79,7 +79,7 @@ export function DetailOverlay({ definition, onClose, idleMs = IDLE_MS }: Props) 
         </button>
       </div>
       <DetailBusyContext.Provider value={busyValue}>
-        <div className="min-h-0 flex-1 overflow-hidden">
+        <div className="min-h-0 flex-1 overflow-hidden p-1">
           <Detail onClose={onClose} />
         </div>
       </DetailBusyContext.Provider>

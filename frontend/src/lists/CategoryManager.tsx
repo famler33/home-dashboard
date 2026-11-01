@@ -16,28 +16,43 @@ interface Props {
 export function CategoryManager({ layout, categories, onAdd, onRename, onRemove, onClose }: Props) {
   const { t } = useTranslation();
   const height = useVisualViewportHeight();
+  const wall = layout === 'wall';
+  const target = wall ? 'min-h-14' : 'min-h-11';
   const [name, setName] = useState('');
   const [confirming, setConfirming] = useState<string | null>(null);
 
   return (
-    <div className="absolute inset-0 z-30 flex items-end justify-center bg-ink/40 p-4">
+    <div
+      className={`fixed inset-0 z-50 flex justify-center bg-ink/40 p-4 ${wall ? 'items-center' : 'items-end'}`}
+    >
       <div
         role="dialog"
         aria-modal="true"
         aria-label={t('lists.manageCategories')}
-        style={height !== null && layout === 'wall' ? { maxHeight: `${height}px` } : undefined}
-        className="flex w-full max-w-xl flex-col gap-3 overflow-y-auto rounded-3xl bg-surface-raised p-5 shadow-lg"
+        style={{
+          maxHeight: `${height !== null ? Math.min(height, window.innerHeight) - 32 : window.innerHeight - 32}px`,
+        }}
+        className="flex w-full max-w-2xl flex-col gap-3 rounded-3xl bg-surface-raised p-5 shadow-lg"
       >
-        <h3 className="text-title text-ink">{t('lists.manageCategories')}</h3>
-        <ul className="flex flex-col gap-2">
+        <div className="flex items-center justify-between gap-3">
+          <h3 className="text-title text-ink">{t('lists.manageCategories')}</h3>
+          <button
+            type="button"
+            onClick={onClose}
+            className={`${target} rounded-2xl bg-surface px-5 text-body text-ink`}
+          >
+            {t('lists.dismiss')}
+          </button>
+        </div>
+        <ul className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto p-1">
           {categories.map((category) => (
             <li
               key={category.id}
               data-testid={`category-${category.id}`}
-              className="flex flex-wrap items-center gap-2"
+              className="flex flex-wrap items-center gap-x-2 gap-y-1"
             >
               {category.builtin ? (
-                <span className="min-h-11 flex-1 px-4 py-2 text-body text-ink">
+                <span className={`${target} flex flex-1 items-center px-4 text-body text-ink`}>
                   {category.name}
                 </span>
               ) : (
@@ -50,13 +65,13 @@ export function CategoryManager({ layout, categories, onAdd, onRename, onRemove,
                       const next = event.target.value.trim();
                       if (next !== '' && next !== category.name) onRename(category.id, next);
                     }}
-                    className="min-h-11 flex-1 rounded-2xl bg-surface px-4 text-body text-ink"
+                    className={`${target} min-w-0 flex-1 rounded-2xl bg-surface px-4 text-body text-ink`}
                   />
                   <button
                     type="button"
                     aria-label={t('lists.remove')}
                     onClick={() => setConfirming(category.id)}
-                    className="min-h-11 rounded-2xl px-4 text-body text-danger ring-1 ring-danger"
+                    className={`${target} shrink-0 rounded-2xl px-4 text-body text-danger ring-1 ring-danger`}
                   >
                     {t('lists.remove')}
                   </button>
@@ -69,14 +84,14 @@ export function CategoryManager({ layout, categories, onAdd, onRename, onRemove,
                           onRemove(category.id);
                           setConfirming(null);
                         }}
-                        className="min-h-11 rounded-2xl bg-danger px-4 text-body text-surface-raised"
+                        className={`${target} rounded-2xl bg-danger px-4 text-body text-surface-raised`}
                       >
                         {t('lists.confirmRemove')}
                       </button>
                       <button
                         type="button"
                         onClick={() => setConfirming(null)}
-                        className="min-h-11 rounded-2xl bg-surface px-4 text-body text-ink"
+                        className={`${target} rounded-2xl bg-surface px-4 text-body text-ink`}
                       >
                         {t('lists.cancel')}
                       </button>
@@ -103,22 +118,15 @@ export function CategoryManager({ layout, categories, onAdd, onRename, onRemove,
             maxLength={20}
             onChange={(event) => setName(event.target.value)}
             placeholder={t('lists.categoryNew')}
-            className="min-h-11 flex-1 rounded-2xl bg-surface px-4 text-body text-ink"
+            className={`${target} min-w-0 flex-1 rounded-2xl bg-surface px-4 text-body text-ink`}
           />
           <button
             type="submit"
-            className="min-h-11 rounded-2xl bg-ink px-4 text-body font-semibold text-surface-raised"
+            className={`${target} shrink-0 rounded-2xl bg-ink px-4 text-body font-semibold text-surface-raised`}
           >
             {t('lists.add')}
           </button>
         </form>
-        <button
-          type="button"
-          onClick={onClose}
-          className="min-h-11 self-end rounded-2xl bg-surface px-4 text-body text-ink"
-        >
-          {t('lists.dismiss')}
-        </button>
       </div>
     </div>
   );
