@@ -28,7 +28,7 @@ home-dashboard/
 ## Netzwerk und Zugriffsschutz
 
 Das Dashboard darf nie aus dem Internet erreichbar sein. Es gibt keine Konten und kein Login: Jedes Gerät im
-Heimnetz darf ansehen und, sobald die Listen-Funktion existiert, Listen ohne Login bearbeiten. Das ist eine
+Heimnetz darf ansehen und Listen ohne Login bearbeiten. Das ist eine
 bewusste Entscheidung; sie gilt nur, wenn der Zugang zum Heimnetz geschützt ist.
 
 1. **DHCP-Reservierung:** Im Router dem NAS eine feste LAN-Adresse geben (z. B. `192.168.1.20`). Der Container
@@ -43,7 +43,7 @@ bewusste Entscheidung; sie gilt nur, wenn der Zugang zum Heimnetz geschützt ist
    (z. B. `192.168.1.0/24`) erlauben, sonst verweigern.
 6. **Gäste:** Gäste-Geräte gehören in ein getrenntes Gäste-WLAN, das das NAS nicht erreicht. Das ist eine
    Annahme dieser Installation: Wer im selben Netz wie das NAS ist, kann das Dashboard ohne Login sehen
-   und (später) Listen ändern.
+   und Listen ändern.
 7. **Prüfen:** Vom Handy mit ausgeschaltetem WLAN (Mobilfunk) die Adresse aufrufen – es darf keine Antwort
    kommen. Zusätzlich die öffentliche IP des Anschlusses von außen auf den Port scannen lassen.
 
@@ -216,6 +216,34 @@ per HTTPS:
   untersagt, `sources.news.enabled` auf `false` setzen.
 - **Netzwerk:** Die Firewall des NAS muss ausgehendes HTTPS zu diesen beiden Hosts erlauben.
 
+## Listen
+
+Die Einkaufsliste und die To-dos liegen in der Datenbank des Dashboards (`data/dashboard.sqlite`); es gibt kein Konto
+und keinen externen Dienst. Bearbeiten kann jedes Gerät im Heimnetz.
+
+- **Adresse:** Auf dem Tablet öffnet die Kachel die Detailansicht; auf dem Handy ist `http://dashboard.home/listen`
+  die Seite zum Bearbeiten (als Lesezeichen oder Home-Bildschirm-Symbol ablegen).
+- **Erlaubte Namen:** Das Dashboard beantwortet Anfragen an `/api/` nur unter den Namen in `network.allowedHosts`
+  in `settings.yaml` (ohne Schema und Port; `localhost` ist immer erlaubt) und schreibende Anfragen nur von
+  der eigenen Seite. Trage den Namen und die LAN-Adresse ein, unter denen Tablet und Handys das Dashboard öffnen,
+  z. B. `dashboard.home` und `192.168.1.20`. Ändert sich die Adresse des NAS (siehe Abschnitt Netzwerk) oder
+  kommt ein neuer Name dazu, muss die Liste angepasst und der Container neu gestartet werden; sonst bleibt die
+  Seite ohne Daten.
+- **Alte To-do-App übernehmen (einmalig):**
+  1. Aus der alten App eine JSON-Datei im Format `{"version":1,"tasks":[{"title","category","priority":"Hoch|Mittel|Niedrig"}]}`
+     erzeugen (höchstens 1 MiB; erledigte Aufgaben werden übersprungen) und nach `data/imports/todos.json` legen.
+  2. Zuerst ohne Schreiben prüfen: `docker exec <container> node dist/cli/import-todos.js /data/imports/todos.json --dry-run`.
+     Die Ausgabe nennt nur Zahlen (gelesen, übernommen, übersprungen, neue Kategorien), nie Titel.
+  3. Dann ohne `--dry-run` ausführen; der Import ist alles oder nichts und überspringt bereits vorhandene Aufgaben.
+  4. Die Datei danach löschen (`--delete-file` beim letzten Lauf) und den Ordner `data/imports/` leeren: Die Datei
+     enthält Klartext-Titel.
+- **Sicherung:** Die Listen stecken in der nächtlichen Datenbanksicherung im Ordner `backup/` (siehe Abschnitt
+  Backup). Nach einer Wiederherstellung ist der Stand der Sicherung zu sehen; später am Tag Eingetragenes fehlt.
+- **Aufräumen:** Abgehakte Einträge verschwinden am nächsten Tag von selbst. Gelöschte zählen noch eine Stunde zur
+  Obergrenze der Zeilen; bei „Die Liste ist voll“ also kurz warten oder Einträge löschen.
+- **Erreichbarkeit:** Der Port hängt an `DASHBOARD_BIND_IP` in `.env` (siehe Erstinstallation). Stimmt die Adresse
+  nicht mehr, ist auch die Listenseite nicht erreichbar.
+
 ## Tablet einrichten
 
 Das Dashboard läuft im Querformat im Browser im Vollbild. Für den Dauerbetrieb am Tablet:
@@ -240,8 +268,7 @@ Das Dashboard läuft im Querformat im Browser im Vollbild. Für den Dauerbetrieb
 ## Handy
 
 Im Heimnetz-WLAN `http://dashboard.home` öffnen. Die Handy-Ansicht zeigt die Listen zuerst und darunter
-kompakt die übrigen Kacheln. Ohne Login kann jedes Gerät im Heimnetz Listen ansehen und (nach der
-Listen-Erweiterung) bearbeiten; siehe Abschnitt Netzwerk.
+kompakt die übrigen Kacheln. Ohne Login kann jedes Gerät im Heimnetz Listen ansehen und bearbeiten; siehe Abschnitt Netzwerk.
 
 ## Fehlersuche
 
