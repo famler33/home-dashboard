@@ -5,6 +5,7 @@ description: >
   UX guidelines. Consulted during roadmap, PRD, spec, implementation and verification
   whenever a design decision is made.
 tools: Read, Grep, Glob
+model: haiku
 ---
 
 # UX Advisor Agent

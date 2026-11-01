@@ -1,0 +1,289 @@
+# Home-Dashboard auf dem Synology-NAS betreiben
+
+Runbook für Installation, Updates, Rücksprung, Datensicherung und das Wandtablet.
+Das Dashboard läuft als ein Docker-Container (Container Manager) auf dem Synology-NAS (Intel x86_64) und ist
+nur im Heimnetz erreichbar.
+
+## Überblick
+
+| Teil | Ort |
+| ---- | --- |
+| Compose-Datei und Image | `infrastructure/` im Repository, per `scripts/deploy.sh` aufs NAS |
+| Einstellungen, Zugangsdaten | nur auf dem NAS, Ordner `config/` (nie im Repository oder Image) |
+| Daten (SQLite) | NAS-Ordner `data/` |
+| Nächtliche Sicherung | NAS-Ordner `backup/` |
+| Adresse | `http://dashboard.home` bzw. `http://<NAS-IP>:8080` (Standard-Port 8080) |
+
+Auf dem NAS liegt alles unter einem Projektordner, z. B. `/volume1/docker/home-dashboard`:
+
+```text
+home-dashboard/
+  docker-compose.yml   wird vom Deploy-Skript hochgeladen
+  .env                 Adresse, Port, Benutzer (keine Geheimnisse), siehe .env.example
+  config/              settings.yaml, credentials.yaml (nur lesend im Container)
+  data/                dashboard.sqlite
+  backup/              dashboard-JJJJMMTT-HHMMSS.sqlite
+```
+
+## Netzwerk und Zugriffsschutz
+
+Das Dashboard darf nie aus dem Internet erreichbar sein. Es gibt keine Konten und kein Login: Jedes Gerät im
+Heimnetz darf ansehen und Listen ohne Login bearbeiten. Das ist eine
+bewusste Entscheidung; sie gilt nur, wenn der Zugang zum Heimnetz geschützt ist.
+
+1. **DHCP-Reservierung:** Im Router dem NAS eine feste LAN-Adresse geben (z. B. `192.168.1.20`). Der Container
+   bindet seinen Port genau an diese Adresse (`DASHBOARD_BIND_IP`). Ändert sich die Adresse, ist das
+   Dashboard nicht mehr erreichbar.
+2. **Hostname:** Im Router (oder auf dem NAS) einen lokalen DNS-Eintrag `dashboard.home` auf diese Adresse
+   anlegen. Kann der Router keine lokalen Namen, bleibt die feste IP-Adresse mit Port die Adresse.
+3. **Keine Port-Weiterleitung** im Router für das NAS. **UPnP** im Router ausschalten.
+4. **QuickConnect, DDNS und externer Zugriff** (Synology) dürfen den Dashboard-Port nicht veröffentlichen;
+   den Port auch nicht über einen Reverse Proxy des NAS nach außen geben.
+5. **Firewall (DSM):** Systemsteuerung → Sicherheit → Firewall: den Dashboard-Port nur aus dem LAN-Subnetz
+   (z. B. `192.168.1.0/24`) erlauben, sonst verweigern.
+6. **Gäste:** Gäste-Geräte gehören in ein getrenntes Gäste-WLAN, das das NAS nicht erreicht. Das ist eine
+   Annahme dieser Installation: Wer im selben Netz wie das NAS ist, kann das Dashboard ohne Login sehen
+   und Listen ändern.
+7. **Prüfen:** Vom Handy mit ausgeschaltetem WLAN (Mobilfunk) die Adresse aufrufen – es darf keine Antwort
+   kommen. Zusätzlich die öffentliche IP des Anschlusses von außen auf den Port scannen lassen.
+
+## Erstinstallation
+
+Voraussetzungen: DSM 7.2 oder neuer mit **Container Manager**, SSH aktiviert (nur LAN), Zugriff auf den Router.
+
+1. **Container Manager starten lassen:** Im Paket-Zentrum prüfen, dass Container Manager installiert ist und
+   nach einem Neustart automatisch startet. Projekte mit `restart: unless-stopped` starten dann von selbst
+   wieder.
+2. **Ordner anlegen** (Dateistation oder SSH): `config`, `data`, `backup` unter `/volume1/docker/home-dashboard`.
+3. **Benutzer für das Dashboard festlegen:** UID und GID des NAS-Benutzers ermitteln, dem diese Ordner
+   gehören (`id <benutzer>` per SSH, z. B. `1000` und `100`). Den Ordnern genau diesen Besitzer geben.
+4. **Berechtigungen:** `backup/` mit Modus `0700`, `config/credentials.yaml` mit Modus `0600`, beides im
+   Besitz dieses Benutzers (sonst kann der Container die Datei nicht lesen). Den Backup-Ordner nicht in
+   freigegebenen oder Medienordnern anlegen.
+5. **Einstellungen:** `infrastructure/config.example/settings.example.yaml` nach `config/settings.yaml`
+   kopieren und anpassen (Zeitzone, Standort, Nachtzeiten, Backup). `credentials.example.yaml` nach
+   `config/credentials.yaml` kopieren, nur echte Werte eintragen, die spätere Kacheln brauchen. Beide
+   Dateien bleiben auf dem NAS.
+6. **`.env` anlegen:** `infrastructure/.env.example` nach `.env` im Projektordner kopieren: `DASHBOARD_BIND_IP`
+   (die reservierte NAS-Adresse), `DASHBOARD_PORT`, `DASHBOARD_UID`, `DASHBOARD_GID`. Nie `0.0.0.0` eintragen.
+7. **Deploy-Benutzer und SSH-Schlüssel einrichten** (siehe unten), dann am Mac `scripts/deploy.env` aus
+   `scripts/deploy.env.example` erstellen.
+8. **Ersten Stand ausrollen:** am Mac `scripts/deploy.sh`. Das Skript baut das Image für `linux/amd64`, schickt
+   es per SSH aufs NAS, lädt nur die Compose-Datei hoch, startet das Projekt und wartet auf „healthy“.
+9. **Prüfen:** In Container Manager steht das Projekt `home-dashboard` auf „läuft“ und der Container auf
+   „healthy“. `http://dashboard.home` im Browser öffnet das Dashboard.
+
+### Deploy-Benutzer und SSH-Schlüssel
+
+- Auf dem Mac einen eigenen Schlüssel nur für Deployments erzeugen und mit Passphrase schützen
+  (macOS-Schlüsselbund): `ssh-keygen -t ed25519 -f ~/.ssh/home-dashboard-deploy`.
+- Auf dem NAS einen eigenen Benutzer (z. B. `dashboard-deploy`) mit der öffentlichen Schlüsseldatei
+  (`authorized_keys`) anlegen. Passwort-Login für diesen Benutzer ausschalten, SSH nur aus dem LAN zulassen.
+- Den Host-Schlüssel des NAS einmalig prüfen und in `known_hosts` eintragen (`ssh-keyscan` und
+  Fingerabdruck am NAS vergleichen). Das Skript verwendet `StrictHostKeyChecking=yes`, also keine
+  automatische Annahme unbekannter Hosts.
+- **Ehrlicher Hinweis:** Unter DSM ist Docker-Zugriff praktisch gleichbedeutend mit Root-Rechten. Der Benutzer
+  braucht das Recht, `docker` auszuführen; je nach DSM-Version geht das nur mit Mitgliedschaft in der
+  Administratoren-Gruppe. Dann bleibt der Benutzer ein dedizierter Schlüssel-Benutzer ohne Passwort, nur im
+  LAN, und der Schlüssel liegt ausschließlich auf dem Mac.
+
+## Update
+
+Am Mac im Repository: `scripts/deploy.sh`. Das Skript:
+
+1. baut ein neues Image mit eindeutiger Build-ID (`<git-Hash>-<Zeitstempel>`),
+2. überträgt es per `docker save | ssh | docker load` (keine Registry, nichts verlässt das Heimnetz),
+3. lädt nur `docker-compose.yml` hoch (nie Einstellungen oder Zugangsdaten),
+4. merkt sich den bisherigen Stand in `.previous-build` und startet den neuen,
+5. wartet auf „healthy“ und entfernt alte Image-Versionen (es bleiben `KEEP_TAGS`).
+
+Immer über das Skript ausrollen: Die Compose-Datei enthält einen `build:`-Abschnitt und die Voreinstellung
+`home-dashboard:dev`. Wer das Projekt in Container Manager ohne die gesetzte Build-ID neu startet oder
+neu baut, sucht dieses Image und startet nicht den ausgerollten Stand.
+
+Daten (`data/`), Sicherungen (`backup/`) und `config/` bleiben unverändert. Das geöffnete Tablet erkennt
+die neue Build-ID und lädt sich selbst neu; manuelles Neuladen ist nicht nötig.
+Für einen Probelauf ohne Wirkung: `DRY_RUN=1 scripts/deploy.sh`.
+
+## Rollback
+
+Läuft ein neuer Stand nicht gesund: `scripts/deploy.sh --rollback` startet den in `.previous-build`
+gemerkten Stand wieder. Die Datenbank wird nicht zurückgesetzt. Hat der neue Stand das Datenbankschema
+erweitert, startet der alte Stand mit der Meldung `DB_SCHEMA_NEWER_THAN_APP` nicht; dann zuerst die Daten
+aus der letzten Sicherung wiederherstellen (nächster Abschnitt).
+
+## Backup und Wiederherstellung
+
+Jede Nacht zur Zeit `backup.time` schreibt der Container eine konsistente Kopie der Datenbank nach `backup/`
+(`dashboard-JJJJMMTT-HHMMSS.sqlite`) und behält die letzten `backup.retention` Dateien. Die Sicherungen
+enthalten nur die Datenbank, nie Einstellungen, Zugangsdaten oder Nachrichten-Schlagzeilen. Den Ordner `backup/` in Hyper Backup oder
+eine andere NAS-Sicherung aufnehmen.
+
+Wiederherstellen:
+
+1. Projekt in Container Manager stoppen (oder `docker compose stop` im Projektordner).
+2. Die gewünschte Datei `backup/dashboard-….sqlite` nach `data/dashboard.sqlite` kopieren.
+3. Daneben liegende Dateien `data/dashboard.sqlite-wal` und `data/dashboard.sqlite-shm` löschen.
+4. Projekt wieder starten und `http://dashboard.home` prüfen.
+
+## Wetter
+
+Die Wetter-Kachel braucht keinen Schlüssel und kein Konto. Sie holt offene Daten, ausgehend per HTTPS:
+
+| Teil | Dienst (Host) | Takt |
+| ---- | ------------- | ---- |
+| Vorhersage (jetzt, Stunden, 7 Tage) | Open-Meteo (`api.open-meteo.com`) | alle 15 Min. |
+| Regenradar (DWD) | Bright Sky (`api.brightsky.dev`) | alle 5 Min. |
+| Unwetterwarnungen (DWD) | Bright Sky (`api.brightsky.dev`) | alle 15 Min. |
+| Kartenhintergrund des Radars | OpenStreetMap-Kacheln (`tile.openstreetmap.org`), über das Dashboard geladen | nur bei Bedarf |
+
+- **Datenschutz:** Der Standort aus `settings.yaml` wird vor jedem Abruf auf zwei Nachkommastellen (ca. 1 km)
+  gerundet. Das Tablet und das Handy sprechen nie selbst mit diesen Diensten, nur mit dem Dashboard.
+- **Kartenkacheln:** Das Dashboard legt die Kacheln unter `data/tiles` ab (höchstens 64 Dateien, 8 MiB). Der
+  Ordner darf jederzeit gelöscht werden; er füllt sich von selbst wieder.
+- **Ausschalten:** `sources.weather.enabled: false` in `settings.yaml` schaltet Vorhersage, Radar und Warnungen
+  gemeinsam ab (Container neu starten).
+- **Quellenangaben:** Die Kachel nennt ihre Quellen (Open-Meteo.com, Deutscher Wetterdienst über Bright Sky,
+  OpenStreetMap-Mitwirkende). Diese Angaben nicht entfernen.
+- **Dienste prüfen:** Im Ordner `backend/` zeigt `node scripts/weather-live-check.mjs <Pfad zur settings.yaml>`,
+  ob die Dienste erreichbar sind und noch die erwartete Form liefern. Es gibt nur Formen und Anzahlen aus,
+  keine Daten und keine Koordinaten, und gehört zu keinem Testlauf.
+- **Störungen:** Fällt ein Teil aus, bleibt der Rest nutzbar. Ein veraltetes Radar bleibt als letztes Bild mit
+  „Radar veraltet“ und Alter sichtbar; die Kachel zeigt nie einen leeren Fehler.
+- **Netzwerk:** Die Firewall des NAS muss ausgehendes HTTPS zu diesen drei Hosts erlauben.
+
+## Kalender
+
+Die Kalender-Kachel liest den gemeinsamen Familienkalender (iCloud) und die beiden Arbeitskalender (Google)
+**nur lesend** als ICS-Feed. Es gibt kein Passwort und keinen Schreibzugriff auf dem NAS; die Feed-Adresse ist
+das Geheimnis: Wer sie kennt, kann diesen Kalender lesen.
+
+1. **Adresse besorgen**
+   - *iCloud (Familienkalender):* Der Kalender muss in iCloud liegen und der Person gehören, die ihn veröffentlicht.
+     Am Mac in der Kalender-App Rechtsklick auf den Kalender, „Freigabeoptionen“, „Öffentlicher Kalender“, Link
+     kopieren; am iPhone Kalender, „Kalender“, beim Kalender (i), „Öffentlicher Kalender“, „Link teilen“.
+     Nimm dafür einen eigenen Familienkalender ohne Sensibles.
+   - *Google (Arbeitskalender, je Person):* calendar.google.com am Computer, bei „Meine Kalender“ die drei Punkte,
+     „Einstellungen und Freigabe“, unten „Kalender integrieren“, **„Geheime Adresse im iCal-Format“**. Fehlt dieser
+     Eintrag, hat der Firmen-Admin ihn gesperrt. Die „Öffentliche Adresse“ nie verwenden: Sie ist erratbar und macht
+     den Kalender für jeden lesbar. Ausweg: Termine in einen privaten Kalender weiterleiten und dessen geheime
+     Adresse nehmen (Firmenregeln beachten).
+2. **Eintragen:** in `config/credentials.yaml` (Modus 600, Besitzer wie der Container) je Kalender ein Eintrag, siehe
+   `credentials.example.yaml`: `calendar-family`, `calendar-person-1`, `calendar-person-2`, jeweils mit `url`.
+   Erlaubt sind nur Adressen von `calendar.google.com` und `icloud.com`; `webcal://` wird zu `https://`. Die Adresse
+   nie in Chats, Tickets oder Commits einfügen.
+3. **Einschalten:** in `config/settings.yaml` unter `sources.calendar` `enabled: true`, je Kalender `enabled`, `name`
+   und `color`; `kitaKeyword` bestimmt das Stichwort für den Block „Kita“. Mit `selfAddresses` (deine Adresse im
+   jeweiligen Kalender) werden abgelehnte Einladungen ausgeblendet. Container neu starten; ein Kalender ohne gültige
+   Adresse stoppt den Start mit einer Meldung, die nur Datei und Schlüssel nennt.
+4. **Prüfen:** Im Ordner `backend/` zeigt `node --import tsx scripts/calendar-live-check.mjs <settings.yaml>
+   <credentials.yaml>`, ob die Feeds erreichbar sind (Größe, Anzahl Termine, Dauer), ohne Titel oder Adressen auszugeben.
+
+- **Datenschutz:** Die Titel der Arbeitstermine gehen an jedes Gerät im Heimnetz und stehen im Zwischenspeicher der
+  Datenbank, also auch in der nächtlichen Sicherung im Ordner `backup/` (Modus 0700, nur auf dem NAS).
+- **Adresse abgeflossen:** Bei Google unter „Kalender integrieren“ die geheime Adresse zurücksetzen. Bei iCloud die
+  Veröffentlichung beenden und neu aktivieren. Danach die neue Adresse eintragen.
+- **Aktualität:** Die Kalender werden alle 15 Minuten gelesen; Google liefert Änderungen teils verzögert. „Veraltet“
+  heißt, dass der Abruf scheitert, nicht dass der Anbieter langsam ist.
+- **Netzwerk:** Die Firewall des NAS muss ausgehendes HTTPS zu `calendar.google.com` und `*.icloud.com` erlauben.
+- **Einzeln abschalten:** `enabled: false` je Kalender; ohne `sources.calendar` oder mit `enabled: false` bleibt der
+  Platzhalter der Kachel.
+
+## Nachrichten
+
+Die Nachrichten-Kachel braucht keinen Schlüssel und kein Konto. Sie liest zwei öffentliche RSS-Feeds, ausgehend
+per HTTPS:
+
+| Teil | Feed (Host) | Takt |
+| ---- | ----------- | ---- |
+| Regional (Berlin und Brandenburg) | rbb24 (`www.rbb24.de`) | alle 15 Min. |
+| Welt (Deutschland und international) | Tagesschau (`www.tagesschau.de`) | alle 15 Min. |
+
+- **Inhalt:** Je Feed nur die aktuellen fünf Überschriften (Titel, Zeit, Quelle). Es gibt weder Links noch Bilder
+  noch Kurztexte; die Kachel zeigt die Schlagzeilen im Wechsel und das Handy als Liste.
+- **Nutzungsbedingungen:** Der rbb24-Feed erlaubt die Nutzung nur für nicht-kommerzielle Angebote, kann jederzeit
+  untersagt werden und darf nicht archiviert werden. Das Dashboard hält deshalb nur die aktuellen Titel
+  (jeder Abruf überschreibt sie) und lässt sie aus den nächtlichen Sicherungen im Ordner `backup/` heraus. Nach
+  einer Wiederherstellung zeigt die Kachel „Schlagzeilen noch nicht geladen“, bis der erste Abruf durch ist.
+- **Quellenangaben:** Jede Schlagzeile nennt ihre Quelle (rbb24, Tagesschau). Diese Angabe nicht entfernen.
+- **Ausschalten:** `sources.news.enabled: false` in `settings.yaml` schaltet beide Feeds gemeinsam ab (Container
+  neu starten); ohne den Schlüssel ist die Kachel eingeschaltet. Die Feed-Adressen stehen fest im Code und lassen
+  sich nicht über die Einstellungen ändern.
+- **Feeds prüfen:** Im Ordner `backend/` zeigt `node --import tsx scripts/news-live-check.mjs`, ob beide Feeds
+  erreichbar sind und noch Schlagzeilen liefern (nur Anzahl und Alter, keine Titel). Es gehört zu keinem Testlauf.
+- **Störungen:** Fällt ein Feed aus, bleibt der andere sichtbar; die Schlagzeilen des ausgefallenen Feeds tragen
+  nach 45 Minuten den Hinweis „Veraltet“ mit Alter. Fällt der rbb24-Feed dauerhaft weg oder wird die Nutzung
+  untersagt, `sources.news.enabled` auf `false` setzen.
+- **Netzwerk:** Die Firewall des NAS muss ausgehendes HTTPS zu diesen beiden Hosts erlauben.
+
+## Listen
+
+Die Einkaufsliste und die To-dos liegen in der Datenbank des Dashboards (`data/dashboard.sqlite`); es gibt kein Konto
+und keinen externen Dienst. Bearbeiten kann jedes Gerät im Heimnetz.
+
+- **Adresse:** Auf dem Tablet öffnet die Kachel die Detailansicht; auf dem Handy ist `http://dashboard.home/listen`
+  die Seite zum Bearbeiten (als Lesezeichen oder Home-Bildschirm-Symbol ablegen).
+- **Erlaubte Namen:** Das Dashboard beantwortet Anfragen an `/api/` nur unter den Namen in `network.allowedHosts`
+  in `settings.yaml` (ohne Schema und Port; `localhost` ist immer erlaubt) und schreibende Anfragen nur von
+  der eigenen Seite. Trage den Namen und die LAN-Adresse ein, unter denen Tablet und Handys das Dashboard öffnen,
+  z. B. `dashboard.home` und `192.168.1.20`. Ändert sich die Adresse des NAS (siehe Abschnitt Netzwerk) oder
+  kommt ein neuer Name dazu, muss die Liste angepasst und der Container neu gestartet werden; sonst bleibt die
+  Seite ohne Daten.
+- **Alte To-do-App übernehmen (einmalig):**
+  1. Aus der alten App eine JSON-Datei im Format `{"version":1,"tasks":[{"title","category","priority":"Hoch|Mittel|Niedrig"}]}`
+     erzeugen (höchstens 1 MiB; erledigte Aufgaben werden übersprungen) und nach `data/imports/todos.json` legen.
+  2. Zuerst ohne Schreiben prüfen: `docker exec <container> node dist/cli/import-todos.js /data/imports/todos.json --dry-run`.
+     Die Ausgabe nennt nur Zahlen (gelesen, übernommen, übersprungen, neue Kategorien), nie Titel.
+  3. Dann ohne `--dry-run` ausführen; der Import ist alles oder nichts und überspringt bereits vorhandene Aufgaben.
+  4. Die Datei danach löschen (`--delete-file` beim letzten Lauf) und den Ordner `data/imports/` leeren: Die Datei
+     enthält Klartext-Titel.
+- **Sicherung:** Die Listen stecken in der nächtlichen Datenbanksicherung im Ordner `backup/` (siehe Abschnitt
+  Backup). Nach einer Wiederherstellung ist der Stand der Sicherung zu sehen; später am Tag Eingetragenes fehlt.
+- **Aufräumen:** Abgehakte Einträge verschwinden am nächsten Tag von selbst. Gelöschte zählen noch eine Stunde zur
+  Obergrenze der Zeilen; bei „Die Liste ist voll“ also kurz warten oder Einträge löschen.
+- **Erreichbarkeit:** Der Port hängt an `DASHBOARD_BIND_IP` in `.env` (siehe Erstinstallation). Stimmt die Adresse
+  nicht mehr, ist auch die Listenseite nicht erreichbar.
+
+## Tablet einrichten
+
+Das Dashboard läuft im Querformat im Browser im Vollbild. Für den Dauerbetrieb am Tablet:
+
+- **Auto-Sperre ausschalten** (iPad: Einstellungen → Anzeige & Helligkeit → Automatische Sperre → Nie;
+  Android: Bildschirm-Timeout auf Maximum bzw. „Immer an“, Entwickleroption „Aktiv lassen“ beim Laden).
+  Das Dashboard kann den Bildschirm im normalen HTTP-Betrieb nicht selbst wachhalten: Die Wake-Lock-Schnittstelle
+  der Browser (Wake Lock) funktioniert nur über HTTPS. Darum sind diese Tablet-Einstellungen nötig.
+- **Vollbild:** einmal auf das Display tippen, dann geht die Seite in den Vollbildmodus. Nach einer Unterbrechung
+  erscheint oben ein Hinweis; ein Tipp stellt den Vollbildmodus wieder her.
+- **Zum Home-Bildschirm hinzufügen** (iPad/Safari: Teilen → Zum Home-Bildschirm) startet das Dashboard ohne
+  Browserleiste im Vollbild; das Manifest legt Namen und Querformat fest.
+- **Geführter Zugriff** (iPad) bzw. Kiosk-Modus/Bildschirm fixieren (Android) sperrt das Tablet auf die
+  Dashboard-App, damit niemand versehentlich herausnavigiert.
+- **Nachts:** Das Dashboard dimmt sich selbst ab `display.nightFrom` und verschiebt statische Elemente
+  langsam gegen Einbrennen. Die Display-Helligkeit des Tablets zusätzlich niedrig stellen.
+- **Akku:** Das Tablet dauerhaft am Netzteil betreiben; wenn möglich Ladeobergrenze (z. B. 80 %) aktivieren.
+- **Kleine Bildschirme:** Das Wandlayout braucht Querformat mit mindestens 1024 × 750 oder 1180 × 700 Bildpunkten
+  (CSS-Pixel; ein iPad mit 2048 × 1536 Pixeln meldet 1024 × 768). Auf kleineren Bildschirmen erscheint die scrollbare Handy-Ansicht.
+- Die Adresse im Browser ist `http://dashboard.home` (oder die feste IP mit Port).
+
+## Handy
+
+Im Heimnetz-WLAN `http://dashboard.home` öffnen. Die Handy-Ansicht zeigt die Listen zuerst und darunter
+kompakt die übrigen Kacheln. Ohne Login kann jedes Gerät im Heimnetz Listen ansehen und bearbeiten; siehe Abschnitt Netzwerk.
+
+## Fehlersuche
+
+| Symptom | Prüfen |
+| ------- | ------ |
+| Nicht erreichbar | NAS-Adresse noch die reservierte? `DASHBOARD_BIND_IP` in `.env` richtig? Firewall erlaubt den Port aus dem LAN? |
+| Container startet nicht, Log nennt eine Datei | Besitzer und Modus von `config/`, `data/`, `backup/` passen zu `DASHBOARD_UID`/`DASHBOARD_GID`? `settings.yaml` gültig (die Meldung nennt den Schlüssel, nie den Wert)? |
+| `DB_SCHEMA_NEWER_THAN_APP` | Ein älterer Stand wurde gestartet; Daten aus einer Sicherung wiederherstellen oder auf den neueren Stand wechseln. |
+| Container „unhealthy“ | Log in Container Manager ansehen; `http://<NAS>:<Port>/api/v1/health` muss `{"status":"ok"}` liefern. |
+| Kacheln gelb „Veraltet“ | Quelle oder Internet gestört; die zuletzt bekannten Daten bleiben sichtbar, der Abruf wird laufend wiederholt. |
+| Punkt „Keine Verbindung“ | Das Tablet erreicht das NAS nicht (WLAN, NAS aus, Container gestoppt). Es erholt sich selbst. |
+| Deploy bricht mit Host-Schlüssel-Fehler ab | `known_hosts` prüfen; Fingerabdruck am NAS vergleichen, nie Prüfung abschalten. |
+| `docker: permission denied` beim Deploy | Docker-Rechte des Deploy-Benutzers prüfen (siehe Hinweis oben). |
+
+## Aufräumen
+
+Nur das Projekt stoppen und entfernen: Container Manager → Projekt → Löschen. Die Ordner `config/`,
+`data/` und `backup/` bleiben erhalten, bis sie ausdrücklich gelöscht werden.

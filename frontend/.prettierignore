@@ -1,0 +1,9 @@
+dist
+node_modules
+pnpm-lock.yaml
+test-results
+playwright-report
+e2e/.data
+e2e/.backup
+test-results
+playwright-report

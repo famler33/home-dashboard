@@ -1,0 +1,219 @@
+{
+  "buildId": "sample",
+  "serverTime": "2026-10-28T10:00:00.000Z",
+  "settings": {
+    "timezone": "Europe/Berlin",
+    "display": { "nightFrom": "22:00", "nightTo": "06:30", "dailyReloadAt": "04:00" },
+    "calendar": {
+      "kitaKeyword": "Kita",
+      "calendars": [
+        { "id": "family", "name": "Familie", "color": "blue", "role": "family" },
+        { "id": "person-1", "name": "Alex", "color": "green", "role": "person" }
+      ]
+    }
+  },
+  "sources": [
+    {
+      "id": "calendar-family",
+      "status": "fresh",
+      "data": {
+        "events": [
+          {
+            "uid": "kita-1@example.com",
+            "title": "Kita bringen – Alex",
+            "allDay": false,
+            "start": "2026-10-27T06:30:00.000Z",
+            "end": "2026-10-27T07:00:00.000Z",
+            "tentative": false
+          },
+          {
+            "uid": "yesterday-1@example.com",
+            "title": "Gestern bis heute",
+            "allDay": false,
+            "start": "2026-10-27T22:00:00.000Z",
+            "end": "2026-10-28T00:30:00.000Z",
+            "tentative": false
+          },
+          {
+            "uid": "gym-1@example.com",
+            "title": "Turnen",
+            "allDay": false,
+            "start": "2026-10-28T16:00:00.000Z",
+            "end": "2026-10-28T17:00:00.000Z",
+            "tentative": false
+          },
+          {
+            "uid": "kita-1@example.com",
+            "title": "Kita bringen (später) – Alex",
+            "allDay": false,
+            "start": "2026-10-29T08:00:00.000Z",
+            "end": "2026-10-29T08:30:00.000Z",
+            "tentative": false
+          },
+          {
+            "uid": "float-1@example.com",
+            "title": "Schwebende Zeit",
+            "allDay": false,
+            "start": "2026-10-29T09:00:00.000Z",
+            "end": "2026-10-29T10:00:00.000Z",
+            "tentative": false
+          },
+          {
+            "uid": "ny-1@example.com",
+            "title": "Call New York",
+            "allDay": false,
+            "start": "2026-10-29T13:00:00.000Z",
+            "end": "2026-10-29T14:00:00.000Z",
+            "tentative": false
+          },
+          {
+            "uid": "win-1@example.com",
+            "title": "Unbekannte Zone",
+            "allDay": false,
+            "start": "2026-10-29T13:00:00.000Z",
+            "end": "2026-10-29T14:00:00.000Z",
+            "tentative": false
+          },
+          {
+            "uid": "rich-1@example.com",
+            "title": "Elternabend mit sehr langem Titel AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+            "allDay": false,
+            "start": "2026-10-29T17:30:00.000Z",
+            "end": "2026-10-29T19:00:00.000Z",
+            "tentative": false
+          },
+          {
+            "uid": "holiday-1@example.com",
+            "title": "Urlaub bei Oma",
+            "allDay": true,
+            "start": "2026-10-30",
+            "end": "2026-11-02",
+            "tentative": false
+          },
+          {
+            "uid": "kita-1@example.com",
+            "title": "Kita bringen – Alex",
+            "allDay": false,
+            "start": "2026-10-30T06:30:00.000Z",
+            "end": "2026-10-30T07:00:00.000Z",
+            "tentative": false
+          },
+          {
+            "uid": "night-1@example.com",
+            "title": "Spätschicht",
+            "allDay": false,
+            "start": "2026-10-30T21:00:00.000Z",
+            "end": "2026-10-31T01:00:00.000Z",
+            "tentative": false
+          },
+          {
+            "uid": "oneday-1@example.com",
+            "title": "Ohne Ende",
+            "allDay": true,
+            "start": "2026-10-31",
+            "end": "2026-11-01",
+            "tentative": false
+          },
+          {
+            "uid": "kita-1@example.com",
+            "title": "Kita bringen – Alex",
+            "allDay": false,
+            "start": "2026-10-31T06:30:00.000Z",
+            "end": "2026-10-31T07:00:00.000Z",
+            "tentative": false
+          },
+          {
+            "uid": "maybe-1@example.com",
+            "title": "Vielleicht Brunch",
+            "allDay": false,
+            "start": "2026-10-31T09:00:00.000Z",
+            "end": "2026-10-31T10:30:00.000Z",
+            "tentative": true
+          },
+          {
+            "uid": "kita-1@example.com",
+            "title": "Kita bringen – Alex",
+            "allDay": false,
+            "start": "2026-11-01T06:30:00.000Z",
+            "end": "2026-11-01T07:00:00.000Z",
+            "tentative": false
+          },
+          {
+            "uid": "kita-1@example.com",
+            "title": "Kita bringen – Alex",
+            "allDay": false,
+            "start": "2026-11-02T06:30:00.000Z",
+            "end": "2026-11-02T07:00:00.000Z",
+            "tentative": false
+          },
+          {
+            "uid": "kita-1@example.com",
+            "title": "Kita bringen – Alex",
+            "allDay": false,
+            "start": "2026-11-03T06:30:00.000Z",
+            "end": "2026-11-03T07:00:00.000Z",
+            "tentative": false
+          }
+        ],
+        "truncated": false
+      },
+      "lastUpdated": "2026-10-28T09:59:30.000Z",
+      "ageSeconds": 30,
+      "staleAfterSeconds": 1800,
+      "lastErrorCode": null
+    },
+    {
+      "id": "calendar-person-1",
+      "status": "fresh",
+      "data": {
+        "events": [
+          {
+            "uid": "sync-1@google.com",
+            "title": "Team Sync",
+            "allDay": false,
+            "start": "2026-10-28T08:00:00.000Z",
+            "end": "2026-10-28T08:45:00.000Z",
+            "tentative": false
+          },
+          {
+            "uid": "ooo-1@google.com",
+            "title": "Gleitzeit",
+            "allDay": true,
+            "start": "2026-10-29",
+            "end": "2026-10-30",
+            "tentative": false
+          },
+          {
+            "uid": "maybe-2@google.com",
+            "title": "Kundentermin",
+            "allDay": false,
+            "start": "2026-10-29T15:00:00.000Z",
+            "end": "2026-10-29T16:00:00.000Z",
+            "tentative": true
+          },
+          {
+            "uid": "kita-1@example.com",
+            "title": "Kita bringen – Alex",
+            "allDay": false,
+            "start": "2026-10-31T08:00:00.000Z",
+            "end": "2026-10-31T09:00:00.000Z",
+            "tentative": false
+          },
+          {
+            "uid": "sync-1@google.com",
+            "title": "Team Sync",
+            "allDay": false,
+            "start": "2026-11-02T08:00:00.000Z",
+            "end": "2026-11-02T08:45:00.000Z",
+            "tentative": false
+          }
+        ],
+        "truncated": false
+      },
+      "lastUpdated": "2026-10-28T09:59:30.000Z",
+      "ageSeconds": 30,
+      "staleAfterSeconds": 1800,
+      "lastErrorCode": null
+    }
+  ]
+}

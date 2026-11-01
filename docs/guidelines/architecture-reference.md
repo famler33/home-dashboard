@@ -9,11 +9,13 @@ respective coding guidelines.
 
 | Layer    | Choice |
 | -------- | ------ |
-| Frontend | React, Vite, TypeScript (pnpm); Tailwind CSS; animation library <TODO: offen> |
-| Backend  | Node.js, Fastify, TypeScript |
-| Database | SQLite (lists, cache, settings) |
-| Infra    | Docker + Docker Compose on a Synology NAS (Container Manager), home network only |
-| CI/CD    | None yet (local repository) |
+| Frontend | React, Vite, TypeScript (pnpm); Tailwind CSS 3 with design tokens; i18next (German); CSS animation plus Motion for the rolling clock; lucide icons; self-hosted variable font |
+| Backend  | Node.js 22, Fastify 5, TypeScript, TypeBox schemas, YAML configuration |
+| Database | SQLite via better-sqlite3 (source cache, radar document, lists); numbered SQL migrations |
+| Infra    | One Docker image (linux/amd64) and Docker Compose on a Synology NAS (Container Manager), home network only |
+| CI/CD    | None yet (local repository); one-command deploy script from the Mac |
+
+TypeScript is pinned to 6.x in both packages because typescript-eslint does not support 7 yet.
 
 ## High-Impact Decisions
 
@@ -30,17 +32,104 @@ calendars and news, caches results in SQLite and exposes one stable internal API
 API keys and calendar credentials therefore live only on the NAS, and the wall tablet
 keeps showing the last cached data when an external service or the internet is down.
 
+### One read model, polled
+
+The display polls one endpoint, `GET /api/v1/snapshot`, every 30 seconds. The response carries
+the build id, the server time, an explicit allowlist of settings and, per source, `id`, `status`,
+`data`, `lastUpdated`, `ageSeconds`, `staleAfterSeconds` and `lastErrorCode`. Freshness is computed on the
+server; the client only keeps ageing between polls with a monotonic clock. A failed poll is the
+offline signal and a changed build id reloads the page. There is no server push: polling has no
+connection state that can hang for days. Later epics extend the snapshot by adding sources, not by
+changing the envelope; a breaking change needs `/api/v2`.
+
+### Sources and the scheduler
+
+A *source* (`id`, `intervalSeconds`, `staleAfterSeconds`, `timeoutMs`, `fetch`) is the only way
+external data enters the system. An in-process scheduler (chained timeouts, injectable clock and
+timers, no dependency) runs each source and the nightly backup. The source runner stores the
+payload on success and only an error code on failure, so the last good payload always survives.
+
+### One container, one origin
+
+The backend serves the built SPA and the API from a single container and a single port; there is
+no CORS and no second web server. Hashed assets are immutable, the entry page is `no-cache`, API
+responses are `no-store`.
+
+### Cacheable API exceptions and the tile proxy
+
+Every `/api/` response is `no-store` except two explicit routes listed in `src/cache-policy.ts`: the
+weather radar document (`no-cache` with an `ETag`, so an unchanged document costs only a 304) and the
+map tile proxy (`private, max-age=86400`). A test asserts that every other route stays `no-store`.
+The tile proxy exists so the display never contacts a third party: it serves only tiles listed in the
+current radar document, validates content type and PNG header, and keeps a small disk cache in `data/tiles`
+(64 files, 8 MiB, 512 KiB per tile). Large binary-like data therefore gets its own versioned route
+instead of living in the snapshot, which only carries a version id.
+
+### Upstream egress
+
+Outbound requests go to fixed hosts held as constants in code (never from configuration), with the home
+location rounded to about 1 km, an identifying user agent, no cookies, no referrer, no redirects,
+response size limits and schema validation. The calendar feeds are the one exception (the address comes from
+`credentials.yaml`, so the host is checked against an allow-list and the resolved address against private ranges;
+see the security guidelines). Sources of one tile that can fail independently are separate
+sources (weather has three), and `sources.<name>.enabled` switches a tile's sources together.
+
+### Licensed content stays out of backups
+
+The nightly backup writes a consistent copy with the online backup API and then removes every `news-` row from
+that copy (`purgeSourceState` followed by `VACUUM`), because the rbb24 feed must not be archived. Live data keeps
+only the current headlines (each fetch overwrites the previous payload). Any future source with a similar licence
+is added to the same purge by its source-id prefix. A restored database shows such a tile as never loaded until
+the first fetch.
+
+### Source grouping and tile registry
+
+A tile fed by several sources lists them in `sourceIds` and derives its frame from them (`deriveEntry`); a
+placeholder entry is replaced by its live entry through `replaces`, which takes one id or a list (the news tile
+replaces both its placeholder and the demo tile). Cross-tile behaviour that more than one tile needs, such as view
+rotation and gesture classification, lives in `frontend/src/tiles/shared/`.
+
+### Time-dependent text is computed in the frontend
+
+Statements that depend on the current time (the rain statement "Regen ab 14:30") are computed in the
+frontend from time series delivered by the backend and the server-based clock, not stored in the snapshot.
+
+### Configuration
+
+Settings and credentials are two YAML files on the NAS (`settings.yaml` required,
+`credentials.yaml` optional), mounted read-only into the container, validated at start with
+TypeBox and failing closed. The frontend only receives a hand-built
+projection (time zone and display schedule). There is no settings screen.
+
 ### Calendar sources
 
-Events come from a shared Apple (iCloud) calendar and two Google work calendars
-(one per person), merged into one view. Access method per source (ICS link, CalDAV,
-API): <TODO: offen>. Calendar access is read-only.
+Events come from a shared Apple (iCloud) calendar and two Google work calendars (one per person), merged into
+one view in the frontend. Each calendar is its own source (`calendar-family`, `calendar-person-1`,
+`calendar-person-2`) that reads a secret ICS feed address through a guarded transport and expands recurring
+events in the backend into a bounded payload; no CalDAV, no API access, no OAuth. Calendar access is read-only.
+The tile frame is derived from all calendar sources of the tile (`deriveEntry`); a failing calendar is marked on
+its own legend chip instead of turning the whole tile stale.
 
-### Existing shopping list is reused
+### Lists are rebuilt in the repository
 
-A shopping list app (Tailwind, running on the NAS) already exists. Whether it is
-integrated, embedded or rebuilt inside this repository is <TODO: offen> and is decided
-in the epic that covers lists.
+The shopping list and the to-dos live in the dashboard's own SQLite database; the older apps are not
+integrated or embedded. Only the open tasks of the old to-do app can be imported once through the
+`import-todos` command (a JSON file in `data/imports/`, all or nothing, counts only in the output).
+
+### Writable data: REST outside the snapshot
+
+Data that people edit does not travel through the snapshot. Lists have their own REST routes under
+`/api/v1/lists` that return the full state; the snapshot carries only a compact summary (source `lists`) so the
+tile renders with the rest of the dashboard. Every list change runs in one transaction that also bumps a
+revision counter and republishes the summary. The client is optimistic: it applies a change at once, queues
+it with a client-generated id and sends changes one after another; creating and removing are idempotent by id,
+retries are safe, and a state is accepted only if its `epoch`/`rev` is newer than the one shown. State from the
+server is held back while the user is editing. No query library is used.
+
+### Request guard instead of login
+
+Because there is no login, `src/request-guard.ts` checks the `Host` header against `network.allowedHosts`
+and refuses cross-origin mutations (rules in the security guidelines). It applies to every `/api/` route.
 
 ### Display-first design
 

@@ -63,8 +63,30 @@ pnpm exec tsc --noEmit
 docker compose -f infrastructure/docker-compose.yml config --quiet
 ```
 
+Additional checks:
+
+- Backend `pnpm build` must succeed (compiled output and migrations are copied).
+- The Docker-gated tests (`backend/test/docker.test.ts`: amd64 image build, native SQLite binding,
+  start with the example configuration and health) run when a Docker daemon is available (on a
+  Mac, for example Colima or Docker Desktop) and are skipped otherwise. A skipped run leaves the
+  affected criteria unverified.
+- Accelerated soak (virtual clock, heap sample): `pnpm run e2e:soak` from `frontend/`
+  (`SOAK_MINUTES`, default 10). It is excluded from the default Playwright run. `frontend/e2e/soak.spec.ts`
+  holds one `@soak` test per long-running part (base polling, calendar tabs being switched, news rotating and being switched by hand, lists being edited); run them serially
+  (`--workers=1`) so the heap samples are not disturbed by parallel browsers.
+- The lists end-to-end tests run against a fresh database per Playwright start, because removed rows keep
+  counting towards the row limit for an hour.
+- Playwright starts the production build through the real backend on port 4173; the browser
+  `webServer` command builds the SPA, so no separate build step is needed. Playwright mocks only the
+  snapshot route and uses its fake clock; its screenshots (`frontend/e2e/screenshots/`) are generated
+  evidence and git-ignored.
+- Browser layout checks use CSS pixel sizes of real tablets (a physical 2048 x 1536 iPad is
+  1024 x 768) and assert that tile content neither clips nor overlaps its heading.
+
 - Tests never call real external services (weather, calendar, news); they use fakes
-  or recorded fixtures. No gate needs a real API key.
+  or recorded fixtures. No gate needs a real API key. Tests that need time use injected clocks
+  and timers rather than real waiting.
+- Use Node 22 and pnpm 12 for all commands.
 - SQLite and temporary directories are used directly; Docker is only needed to build
   or run the containers.
 
@@ -80,6 +102,18 @@ docker compose -f infrastructure/docker-compose.yml config --quiet
   when Docker unavailability is the sole remaining evidence gap.
 - A failing test, format, lint, type-check, or build gate blocks every affected
   acceptance criterion.
+
+### Live checks of external services
+
+Contract tests use recorded fixtures with a golden snapshot (`UPDATE_FIXTURES=1` regenerates it). Real
+service shapes are checked manually and never in a gate: `backend/scripts/weather-live-check.mjs`,
+`calendar-live-check.mjs` and `news-live-check.mjs` print only shapes and counts, never titles or addresses. Verification marks alignment against reference imagery, real-tablet behaviour and
+licence review as manual-only items instead of PASS.
+
+### Load-induced flakiness
+
+On a loaded machine browser and container tests can stall without a real failure. A failure counts only
+when it reproduces in isolation; run Playwright with a reduced worker count in that case.
 
 ### Browser click-through and UX verification
 

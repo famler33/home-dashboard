@@ -6,6 +6,7 @@ description: >
   or agent plans to create or modify infrastructure files, especially during bootstrap
   and implementation work.
 tools: Read, Grep, Glob
+model: haiku
 ---
 
 # Infrastructure Advisor

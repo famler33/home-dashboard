@@ -1,0 +1,86 @@
+# Copy to <config folder>/settings.yaml on the NAS and adjust. Changes apply after a restart.
+
+# IANA time zone of the household; day/night times and the daily backup use it.
+timezone: Europe/Berlin
+
+# Home location (used by later tiles such as weather). It never leaves the NAS.
+location:
+  # Display name of the place.
+  name: Zuhause
+  # Degrees north, -90 to 90.
+  latitude: 52.52
+  # Degrees east, -180 to 180.
+  longitude: 13.405
+
+# Day and night appearance of the wall display.
+display:
+  # The dimmed night appearance starts at this local time (HH:MM, 24 h).
+  nightFrom: "22:00"
+  # ... and ends at this local time.
+  nightTo: "06:30"
+  # Once a day the open display reloads itself after this time.
+  dailyReloadAt: "04:00"
+
+# Data sources of the dashboard.
+sources:
+  # Demo source for checking the freshness display.
+  demo:
+    # Leave this off in daily use.
+    enabled: false
+  # Weather tile: forecast, rain radar and warnings from open weather services.
+  weather:
+    # Set to false to switch the whole weather tile off.
+    enabled: true
+  # News tile: local (rbb24) and national/international (Tagesschau) headlines from public feeds.
+  news:
+    # Set to false to switch the whole news tile off.
+    enabled: true
+  # Calendar tile: the shared family calendar and the two work calendars in one agenda.
+  # Needs one feed address per enabled calendar in credentials.yaml (see the runbook).
+  calendar:
+    # Set to true once the feed addresses are in credentials.yaml; false keeps the placeholder tile.
+    enabled: false
+    # Appointments of the family calendar containing this word appear in the "Kita" block.
+    kitaKeyword: Kita
+    # The three calendars; each one is read through its own feed address.
+    calendars:
+      # The shared family calendar (iCloud).
+      family:
+        # Switch this calendar off or on.
+        enabled: true
+        # Name shown in the tabs and the legend (1 to 20 characters).
+        name: Familie
+        # blue, green, orange, purple, teal or rose
+        color: blue
+      # The work calendar of the first person (Google).
+      person-1:
+        # Leave off until the feed address of this work calendar is available.
+        enabled: false
+        # Name shown in the tabs and the legend.
+        name: Person 1
+        # blue, green, orange, purple, teal or rose
+        color: green
+        # Your own address in this calendar; declined invitations are then hidden.
+        # selfAddresses: [name@example.com]
+      # The work calendar of the second person (Google).
+      person-2:
+        # Leave off until the feed address of this work calendar is available.
+        enabled: false
+        # Name shown in the tabs and the legend.
+        name: Person 2
+        # blue, green, orange, purple, teal or rose
+        color: orange
+
+# Network access to the dashboard API (lists and everything else under /api).
+network:
+  # Host names the dashboard answers to, without scheme or port; localhost is always allowed.
+  # Add the name and the LAN address under which tablet and phones open the dashboard.
+  allowedHosts:
+    - dashboard.home
+
+# Nightly copy of the database into the backup folder.
+backup:
+  # Local time of the nightly database copy.
+  time: "03:00"
+  # Number of backup files to keep (1 to 60).
+  retention: 14

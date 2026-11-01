@@ -1,0 +1,25 @@
+node_modules/
+dist/
+coverage/
+.env
+*.log
+.DS_Store
+
+# Runtime configuration and data on the NAS never enter the repository
+infrastructure/config/
+infrastructure/data/
+infrastructure/backup/
+**/credentials.yaml
+scripts/deploy.env
+
+# Playwright
+frontend/test-results/
+frontend/playwright-report/
+
+# Playwright runtime data and generated evidence
+frontend/e2e/.data/
+frontend/e2e/.backup/
+frontend/e2e/screenshots/
+
+# Scratch folders of the Docker-gated tests
+.docker-test-*/

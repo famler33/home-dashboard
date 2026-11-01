@@ -1,0 +1,17 @@
+.git
+**/node_modules
+**/dist
+**/coverage
+.env
+**/.env
+infrastructure/config
+infrastructure/data
+infrastructure/backup
+**/credentials.yaml
+scripts/deploy.env
+specs
+docs
+.claude
+frontend/e2e
+frontend/test-results
+frontend/playwright-report
