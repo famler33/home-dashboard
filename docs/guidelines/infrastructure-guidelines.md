@@ -53,7 +53,13 @@ file after every epic.
   with placeholders are committed; the real files, `.env` and `scripts/deploy.env` are git-ignored.
 - Updates: `scripts/deploy.sh` builds the image, streams it with `docker save | ssh | docker load`
   (no registry), uploads only the compose file, starts the new build, waits for "healthy", keeps the
-  previous build for `--rollback` and prunes old image tags. `DRY_RUN=1` prints every step.
+  previous build for `--rollback` and prunes old image tags. `DRY_RUN=1` prints every step but
+  checks nothing on the NAS.
+- NAS prerequisites that are done once per NAS (deploy user in `administrators`, user home service,
+  `docker` socket group with a boot-time task, host key in `known_hosts`) are separate from the steps
+  per application (project folder, port, `.env`, `config/`, `deploy.env`); the runbook lists both. The
+  deploy script and compose file are written for this one application (names, Dockerfile path,
+  port) and must be parameterised before a second application is deployed with them.
 
 ## Tags
 

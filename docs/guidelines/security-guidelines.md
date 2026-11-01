@@ -97,3 +97,12 @@ assets: calendar data (including work calendars) and API/calendar credentials.
   key (`StrictHostKeyChecking=yes`), transfers only the image and the compose file and never echoes or
   transfers secrets. Docker access on DSM is effectively root-equivalent for the deploy user;
   keep SSH LAN-only.
+- The deploy user is in the DSM groups `administrators` (DSM allows SSH only for them) and `docker`
+  (socket group, re-applied by a boot-time task). It is root-equivalent, so password login over SSH
+  must be switched off once key login works, and only that user belongs to the `docker` group.
+- Exposure is verified, not assumed: after any network change check from the mobile network (Wi-Fi
+  off) that the dashboard, SSH and DSM ports do not answer, and that the NAS has no reachable global IPv6
+  address (router and DSM firewall cover IPv6 as well).
+- Test configuration with real feed addresses on a development machine lives outside the repository,
+  is deleted when no longer needed, and the feed address is rotated if a copy may have leaked.
+- The secret files are owned by the NAS user whose UID/GID the compose file passes to the container.
