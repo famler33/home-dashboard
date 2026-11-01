@@ -1,8 +1,12 @@
 import { useTranslation } from 'react-i18next';
 import type { SourceSnapshot } from '../../api/types';
+import { conditionLabelKey } from './conditions';
+import { roundTemperature } from './format';
 import { describeRain, pickRainSeries, toBars } from './rain';
 import { rainText } from './rain-text';
 import { RadarView } from './RadarView';
+import { isWeatherPayload } from './types';
+import { WeatherSymbol } from './WeatherSymbol';
 
 interface Props {
   weather: SourceSnapshot | undefined;
@@ -37,6 +41,7 @@ export function RainView({
     ? toBars(picked.steps, picked.stepMin).filter((bar) => bar.time + 15 * 60_000 > now)
     : [];
   const wall = layout === 'wall';
+  const current = wall && isWeatherPayload(weather?.data) ? weather.data.current : null;
 
   return (
     <div className={`flex min-h-0 flex-col gap-2 ${wall ? 'h-full' : ''}`}>
@@ -76,7 +81,21 @@ export function RainView({
           </svg>
         )}
       </div>
-      <div className={`min-h-0 ${wall ? 'flex-1' : ''}`}>
+      <div className={`relative min-h-0 ${wall ? 'flex-1' : ''}`}>
+        {current && (
+          <p
+            data-testid="rain-now"
+            className={`absolute right-2 z-10 flex items-center gap-2 rounded-full bg-surface-raised/85 px-3 tablet-short:bottom-8 tablet-short:left-2 tablet-short:right-auto tablet-short:top-auto ${radar?.status === 'stale' ? 'top-14' : 'top-2'}`}
+          >
+            <WeatherSymbol
+              condition={current.condition}
+              isDay={current.isDay}
+              label={t(conditionLabelKey(current.condition))}
+              className="h-[1.25em] w-[1.25em] shrink-0 text-title"
+            />
+            <span className="text-title tabular-nums">{`${roundTemperature(current.temperature)}°`}</span>
+          </p>
+        )}
         <RadarView
           radar={radar}
           radarAgeSeconds={radarAgeSeconds}

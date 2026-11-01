@@ -1,4 +1,4 @@
-import { act, render, screen } from '@testing-library/react';
+import { act, render, screen, within } from '@testing-library/react';
 import { I18nextProvider } from 'react-i18next';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { i18n } from '../../i18n';
@@ -131,5 +131,27 @@ describe('RainView', () => {
     await flush();
     expect(screen.getByTestId('rain-statement')).toBeInTheDocument();
     expect(screen.getByTestId('rain-bars')).toBeInTheDocument();
+  });
+
+  it('shows the current weather with symbol and temperature over the radar map on the wall', async () => {
+    const weather = weatherWith(new Array(16).fill(0));
+    const current = (weather.data as WeatherPayload).current;
+    show(radarWith(wetFrom20To45), weather);
+    await flush();
+    const now = screen.getByTestId('rain-now');
+    expect(now).toHaveTextContent(`${Math.round(current.temperature)}°`);
+    expect(within(now).getByRole('img')).toBeInTheDocument();
+  });
+
+  it('leaves the current weather out on the phone, where the Jetzt section is directly above', async () => {
+    show(radarWith(wetFrom20To45), weatherWith(new Array(16).fill(0)), 'phone');
+    await flush();
+    expect(screen.queryByTestId('rain-now')).toBeNull();
+  });
+
+  it('leaves the current weather out when there is no weather data', async () => {
+    show(radarWith(wetFrom20To45), undefined);
+    await flush();
+    expect(screen.queryByTestId('rain-now')).toBeNull();
   });
 });

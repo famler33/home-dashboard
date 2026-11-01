@@ -40,7 +40,9 @@ columns reserve a probability line so the values stay aligned.
 **Rain and radar view.** The rain statement, 15-minute bars and the radar loop drawn on a canvas from
 the raw values over a static map. The home point is marked, every frame is labelled with its time and
 "Beobachtung" or "Vorhersage", and a colour legend and the credit sit below the map. A stale radar keeps
-its last picture and says "Radar veraltet" with its age. Reduced motion shows one still frame.
+its last picture and says "Radar veraltet" with its age. Reduced motion shows one still frame. On the wall
+a small pill over the map shows the current weather symbol and temperature (top right, or above the legend on
+short screens); the phone leaves it out because the "Jetzt" section sits directly above.
 
 **Rotation and manual switching.** The wall tile changes view every 15 s with one calm fade (150 ms under
 reduced motion). A tap on the tile, a swipe (at least 60 px, mainly horizontal) or a tap on a view
@@ -108,3 +110,4 @@ location comes from the shared `location` setting.
 | Date | Epic | Change |
 |------|------|--------|
 | 2026-10-28 | Weather (`weather`) | Forecast, radar and warning sources, radar document and map tile routes, the rotating wall tile with manual switching and the stacked phone section, rain statement, symbols, warning banner, compact short-screen layout, runbook section and live-check script. |
+| 2026-11-01 | Weather (`weather`) | The rain and radar view shows the current weather symbol and temperature as a pill over the map on the wall. |
