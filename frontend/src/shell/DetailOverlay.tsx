@@ -64,7 +64,7 @@ export function DetailOverlay({ definition, onClose, idleMs = IDLE_MS }: Props) 
       onPointerDownCapture={touch}
       onKeyDownCapture={touch}
       onScrollCapture={touch}
-      className="view-enter absolute inset-0 z-40 flex flex-col gap-4 bg-surface p-8 tablet-short:gap-2 tablet-short:p-6"
+      className="view-enter absolute inset-0 z-40 flex flex-col gap-4 bg-surface px-8 pb-8 pt-10 tablet-short:gap-2 tablet-short:px-6 tablet-short:pb-6 tablet-short:pt-8"
     >
       <div className="flex items-center justify-between gap-4">
         <h2 className="text-title text-ink">{t(definition.titleKey)}</h2>

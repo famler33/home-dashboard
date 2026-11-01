@@ -183,9 +183,11 @@ export function ListsEditor({ layout }: { layout: 'wall' | 'phone' }) {
         className={`min-h-0 flex-1 ${wall ? 'grid grid-cols-2 gap-6' : 'flex flex-col gap-6 overflow-y-auto'}`}
       >
         <section aria-labelledby="editor-shopping" className="flex min-h-0 flex-col gap-2">
-          <h3 id="editor-shopping" className="text-title text-ink">
-            {t('lists.shopping')}
-          </h3>
+          <div className={`flex items-center ${wall ? 'min-h-14' : 'min-h-11'}`}>
+            <h3 id="editor-shopping" className="text-title text-ink">
+              {t('lists.shopping')}
+            </h3>
+          </div>
           <form
             className="flex flex-col gap-2"
             onSubmit={(event) => {
@@ -257,7 +259,9 @@ export function ListsEditor({ layout }: { layout: 'wall' | 'phone' }) {
         </section>
 
         <section aria-labelledby="editor-todos" className="flex min-h-0 flex-col gap-2">
-          <div className="flex items-center justify-between gap-2">
+          <div
+            className={`flex items-center justify-between gap-2 ${wall ? 'min-h-14' : 'min-h-11'}`}
+          >
             <h3 id="editor-todos" className="text-title text-ink">
               {t('lists.todos')}
             </h3>
