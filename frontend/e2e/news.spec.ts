@@ -1,6 +1,13 @@
 import { expect, test } from '@playwright/test';
 import { tileFitProblems } from './helpers';
-import { activeTitle, newsInstant, newsTile, openNews, smallestFontIn } from './news-helpers';
+import {
+  activeTitle,
+  longTitle,
+  newsInstant,
+  newsTile,
+  openNews,
+  smallestFontIn,
+} from './news-helpers';
 
 test.beforeEach(async ({ page }) => {
   await page.clock.install({ time: newsInstant });
@@ -92,8 +99,13 @@ test.describe('news tile fit', () => {
     test(`stays inside the tile at ${size.width} x ${size.height}`, async ({ page }) => {
       await page.setViewportSize(size);
       await openNews(page);
-      await page.clock.runFor(30_000); // the 160-character headline is the third one
-      await page.getByTestId('view-surface').click();
+      // The 160-character headline is the third one: go there with the next button.
+      const next = newsTile(page).getByRole('button', { name: 'Nächste Schlagzeile' });
+      await next.click();
+      await next.click();
+      await expect(
+        page.locator('[data-headline-active="true"] [data-testid="headline-title"]'),
+      ).toHaveText(longTitle.slice(0, 160));
       await page.waitForTimeout(1500);
       expect(await tileFitProblems(page)).toEqual([]);
       await newsTile(page).screenshot({
@@ -105,10 +117,33 @@ test.describe('news tile fit', () => {
     });
   }
 
-  test('shows exactly one headline with source and age on a short screen', async ({ page }) => {
+  for (const size of sizes) {
+    test(`keeps the buttons at 56 px at ${size.width} x ${size.height}`, async ({ page }) => {
+      await page.setViewportSize(size);
+      await openNews(page);
+      await page.waitForTimeout(1500);
+      for (const name of ['Vorherige Schlagzeile', 'Nächste Schlagzeile']) {
+        const box = (await newsTile(page).getByRole('button', { name }).boundingBox())!;
+        expect(Math.min(box.width, box.height)).toBeGreaterThanOrEqual(56);
+      }
+    });
+
+    test(`fits a stale marker at ${size.width} x ${size.height}`, async ({ page }) => {
+      await page.setViewportSize(size);
+      await openNews(page, { local: 'stale' });
+      await expect(newsTile(page).getByText(/Veraltet · vor 50 Min\./)).toBeVisible();
+      await page.waitForTimeout(1500);
+      expect(await tileFitProblems(page)).toEqual([]);
+    });
+  }
+
+  test('shows exactly one headline with label, source and age on a short screen', async ({
+    page,
+  }) => {
     await page.setViewportSize({ width: 1180, height: 700 });
     await openNews(page);
     await expect(page.getByTestId('headline-title')).toHaveCount(1);
+    await expect(newsTile(page).getByText('Regional')).toBeVisible();
     await expect(newsTile(page).getByText('rbb24')).toBeVisible();
     await expect(newsTile(page).getByText('vor 12 Min.')).toBeVisible();
   });

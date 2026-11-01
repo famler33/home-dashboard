@@ -124,7 +124,7 @@ function WallRotation({
               className={`absolute inset-0 flex flex-col justify-center gap-1 ${isActive ? 'view-enter' : 'view-exit'}`}
             >
               <div className="flex flex-wrap items-baseline gap-x-3 text-caption text-ink-muted">
-                <HeadlineMeta headline={headline} now={now} timeZone={timeZone} compactLabel />
+                <HeadlineMeta headline={headline} now={now} timeZone={timeZone} />
                 <span className="ml-auto tabular-nums">
                   {t('news.position', { index: position + 1, total })}
                 </span>

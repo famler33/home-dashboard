@@ -8,17 +8,15 @@ interface Props {
   headline: Headline;
   now: number;
   timeZone: string;
-  /** Hide the Regional/Welt label visually on short screens (it stays for screen readers). */
-  compactLabel?: boolean;
 }
 
 /** Group label, source name and age; a stale source says so in text with a clock icon. */
-export function HeadlineMeta({ headline, now, timeZone, compactLabel = false }: Props) {
+export function HeadlineMeta({ headline, now, timeZone }: Props) {
   const { t, i18n } = useTranslation();
   const age = describeAge(headline.publishedAt, now, i18n.language, timeZone);
   return (
     <>
-      <span className={`font-medium text-ink ${compactLabel ? 'tablet-short:sr-only' : ''}`}>
+      <span className="font-medium text-ink">
         {t(headline.group === 'local' ? 'news.regional' : 'news.world')}
       </span>
       <span>{headline.sourceName}</span>
