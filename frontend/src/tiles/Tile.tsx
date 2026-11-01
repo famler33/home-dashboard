@@ -62,6 +62,7 @@ function ConnectedTile({ definition, index }: Props) {
       index={index}
       stateTexts={definition.stateTexts}
       freshFooter={definition.freshFooter !== false}
+      dense={definition.dense === true}
       {...detailProps}
     >
       <Component data={source?.data ?? null} />

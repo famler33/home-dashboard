@@ -4,11 +4,7 @@ import type { NewsHeadlineData, NewsPayload } from './types';
 
 export const newsNow = Date.parse('2026-11-01T10:30:00Z');
 
-export function headline(
-  title: string,
-  minutesAgo = 12,
-  id = `id-${title}`,
-): NewsHeadlineData {
+export function headline(title: string, minutesAgo = 12, id = `id-${title}`): NewsHeadlineData {
   return { id, title, publishedAt: new Date(newsNow - minutesAgo * 60_000).toISOString() };
 }
 

@@ -219,6 +219,25 @@ export const de = {
       },
     },
   },
+  news: {
+    regional: 'Regional',
+    world: 'Welt',
+    position: '{{index}} von {{total}}',
+    previous: 'Vorherige Schlagzeile',
+    next: 'Nächste Schlagzeile',
+    empty: 'Noch keine Schlagzeilen',
+    stale: 'Veraltet · {{age}}',
+    states: {
+      neverLoaded: {
+        title: 'Schlagzeilen noch nicht geladen',
+        hint: 'Die ersten Meldungen werden gleich abgerufen.',
+      },
+      error: {
+        title: 'Schlagzeilen derzeit nicht verfügbar',
+        hint: 'Der Abruf wird laufend erneut versucht.',
+      },
+    },
+  },
   errors: {
     NOT_FOUND: 'Nicht gefunden',
     VALIDATION_FAILED: 'Anfrage ungültig',

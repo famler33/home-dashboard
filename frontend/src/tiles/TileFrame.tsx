@@ -16,6 +16,8 @@ interface Props {
   stateTexts?: Partial<Record<'never-loaded' | 'error', StateTextKeys>> | undefined;
   /** Show the update footer for fresh data too (default); stale data always shows it. */
   freshFooter?: boolean;
+  /** No footer at all and a heading that is screen-reader-only on short screens. */
+  dense?: boolean;
   /** Set when the tile offers a detail view: the heading row becomes a button. */
   onOpenDetail?: ((trigger: HTMLElement) => void) | undefined;
   detailLabel?: string | undefined;
@@ -43,6 +45,7 @@ export function TileFrame({
   index,
   stateTexts,
   freshFooter = true,
+  dense = false,
   onOpenDetail,
   detailLabel,
   children,
@@ -50,7 +53,7 @@ export function TileFrame({
   const { t } = useTranslation();
   const headingId = useId();
   const lastUpdated = useLastUpdated(
-    status === 'stale' || (status === 'fresh' && freshFooter) ? ageSeconds : null,
+    !dense && (status === 'stale' || (status === 'fresh' && freshFooter)) ? ageSeconds : null,
   );
   const showsContent = status === 'fresh' || status === 'stale';
 
@@ -81,7 +84,10 @@ export function TileFrame({
           </button>
         </div>
       ) : (
-        <h2 id={headingId} className="self-start text-caption font-medium text-ink-muted">
+        <h2
+          id={headingId}
+          className={`self-start text-caption font-medium text-ink-muted ${dense ? 'tablet-short:sr-only' : ''}`}
+        >
           {title}
         </h2>
       )}

@@ -20,7 +20,7 @@ type Layout = 'tablet' | 'phone';
 function show(sources: SourceSnapshot[] = defaultNewsSources(), layout: Layout = 'tablet') {
   return renderWithProviders(
     <ShellContext.Provider value={{ layout, theme: 'day' }}>
-      <NewsTile data={null} />
+      <NewsTile />
     </ShellContext.Provider>,
     contextFixture(newsSnapshot(sources)),
   );
@@ -30,6 +30,11 @@ const advance = (ms: number) =>
   act(async () => {
     await vi.advanceTimersByTimeAsync(ms);
   });
+
+/** Chained timers fire one rotation step per render, so advance one dwell at a time. */
+const rotate = async (steps: number) => {
+  for (let step = 0; step < steps; step += 1) await advance(15_000);
+};
 
 const active = () => document.querySelector('[data-headline-active="true"]');
 const activeTitle = () => within(active() as HTMLElement).getByTestId('headline-title').textContent;
@@ -53,7 +58,7 @@ describe('NewsTile on the wall', () => {
 
   it('labels global headlines "Welt" with the Tagesschau name', async () => {
     show();
-    await advance(15_000 * 2);
+    await rotate(2);
     const card = active() as HTMLElement;
     expect(within(card).getByText('Welt eins')).toBeInTheDocument();
     expect(within(card).getByText(de.news.world)).toBeInTheDocument();
@@ -72,7 +77,7 @@ describe('NewsTile on the wall', () => {
     expect(activeTitle()).toBe('Lokal eins');
     await advance(15_000);
     expect(activeTitle()).toBe('Lokal zwei');
-    await advance(15_000 * 3);
+    await rotate(3);
     expect(activeTitle()).toBe('Lokal eins');
   });
 
@@ -205,7 +210,8 @@ describe('NewsTile states', () => {
             ? newsEntry(group, [], { status, data: null, ageSeconds: null })
             : newsEntry(group, [headline(`${group}-${status}`)], { status });
         const { container, unmount } = show([make('local', local), make('global', global)]);
-        const anyData = local === 'fresh' || local === 'stale' || global === 'fresh' || global === 'stale';
+        const anyData =
+          local === 'fresh' || local === 'stale' || global === 'fresh' || global === 'stale';
         if (anyData) expect(container.textContent?.trim()).not.toBe('');
         unmount();
       }

@@ -237,4 +237,3 @@ describe('news tile registration', () => {
     expect(live?.stateTexts?.error?.titleKey).toBe('news.states.error.title');
   });
 });
-

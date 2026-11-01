@@ -8,7 +8,12 @@ const fresh = (group: 'local' | 'global', age = 30) =>
 const stale = (group: 'local' | 'global', age = 3000) =>
   newsEntry(group, [headline('A')], { status: 'stale', ageSeconds: age });
 const error = (group: 'local' | 'global') =>
-  newsEntry(group, [], { status: 'error', data: null, ageSeconds: null, lastErrorCode: 'SOURCE_FETCH_FAILED' });
+  newsEntry(group, [], {
+    status: 'error',
+    data: null,
+    ageSeconds: null,
+    lastErrorCode: 'SOURCE_FETCH_FAILED',
+  });
 const never = (group: 'local' | 'global') =>
   newsEntry(group, [], { status: 'never-loaded', data: null, ageSeconds: null });
 

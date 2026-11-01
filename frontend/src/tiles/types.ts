@@ -42,6 +42,8 @@ export interface TileDefinition {
   requiresSource?: boolean;
   /** Id(s) of the tiles this one takes the place of while it is visible. */
   replaces?: string | readonly string[];
+  /** Compact frame: no footer (staleness is shown inside the tile) and a heading that is screen-reader-only on short screens. */
+  dense?: boolean;
   /** Position on the 12 x 6 tablet grid. */
   tablet: GridArea;
   /** Order in the single-column phone layout; lists come first. */

@@ -3,8 +3,7 @@ import { describeAge } from './format';
 import { newsNow } from './test-data';
 
 const ago = (seconds: number) => new Date(newsNow - seconds * 1000).toISOString();
-const describeAt = (seconds: number) =>
-  describeAge(ago(seconds), newsNow, 'de', 'Europe/Berlin');
+const describeAt = (seconds: number) => describeAge(ago(seconds), newsNow, 'de', 'Europe/Berlin');
 
 // Covers: FR-5, AC-14, AC-15
 describe('describeAge', () => {

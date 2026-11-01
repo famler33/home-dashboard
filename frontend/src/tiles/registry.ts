@@ -7,6 +7,8 @@ import { isWeatherPayload } from './weather/types';
 import { WeatherTile } from './weather/WeatherTile';
 import { ListsDetail } from './lists/ListsDetail';
 import { ListsTileContent } from './lists/ListsTile';
+import { deriveNewsEntry } from './news/derive';
+import { NewsTile } from './news/NewsTile';
 import { PlaceholderTile } from './PlaceholderTile';
 import type { TileDefinition } from './types';
 
@@ -98,6 +100,26 @@ export const tileRegistry: readonly TileDefinition[] = [
     tablet: { col: 6, row: 5, colSpan: 7, rowSpan: 2 },
     phoneOrder: 3,
     Component: PlaceholderTile,
+  },
+  {
+    id: 'news-live',
+    titleKey: 'tiles.news',
+    sourceIds: ['news-local', 'news-global'],
+    requiresSource: true,
+    replaces: ['news', 'demo'],
+    deriveEntry: deriveNewsEntry,
+    tablet: { col: 6, row: 5, colSpan: 7, rowSpan: 2 },
+    phoneOrder: 3,
+    dense: true,
+    stateTexts: {
+      'never-loaded': {
+        titleKey: 'news.states.neverLoaded.title',
+        hintKey: 'news.states.neverLoaded.hint',
+      },
+      error: { titleKey: 'news.states.error.title', hintKey: 'news.states.error.hint' },
+    },
+    freshFooter: false,
+    Component: NewsTile,
   },
   {
     id: 'demo',

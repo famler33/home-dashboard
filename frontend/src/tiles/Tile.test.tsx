@@ -374,4 +374,3 @@ describe('TileFrame dense mode', () => {
     expect(screen.getByRole('heading', { name: 'Demo' }).className).not.toContain('sr-only');
   });
 });
-
