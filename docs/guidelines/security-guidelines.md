@@ -58,9 +58,18 @@ assets: calendar data (including work calendars) and API/calendar credentials.
 ## Outbound Requests
 
 - Only the backend calls external services, to a fixed list of hosts held as constants in code
-  (weather: `api.open-meteo.com`, `api.brightsky.dev`, `tile.openstreetmap.org`). Redirects are refused,
+  (weather: `api.open-meteo.com`, `api.brightsky.dev`, `tile.openstreetmap.org`; news: `www.rbb24.de`,
+  `www.tagesschau.de`; calendar: see the exception below). Redirects are refused,
   no cookies or referrer are sent, responses are size-limited and schema-validated, and URLs and upstream
   text are never logged.
+- Calendar feeds are the one exception to fixed host constants, because the address comes from
+  `credentials.yaml`. It is validated at start and before every request: `https` only, no user info, no port, no
+  IP literal, and the host must be `calendar.google.com` or `icloud.com` (or a subdomain). The transport then
+  resolves the host itself and refuses any private, loopback, link-local, CGNAT, unique-local or multicast
+  address, connects to the validated address (so DNS cannot change in between), follows at most three redirects
+  and checks every hop again, accepts only `text/calendar`, `text/plain` or `application/octet-stream` and a body
+  that starts with `BEGIN:VCALENDAR`, limits the size before and after decompression (8 MB) and uses one abort
+  signal. Rejections carry a closed reason, never the address or feed text.
 - Location sent upstream is rounded to two decimals (about 1 km).
 - The map tile proxy serves only integer tile coordinates on the allow-list taken from the current radar
   document, checks content type and PNG magic bytes and caps its disk cache (64 files, 8 MiB, 512 KiB per tile).
@@ -75,8 +84,10 @@ assets: calendar data (including work calendars) and API/calendar credentials.
 - The frontend receives only an explicit allowlist of settings (time zone, display schedule); the
   location counts as private household data and stays in the backend.
 - Configuration errors name the file and key, never the value.
-- Credential type per calendar (ICS link, app password, OAuth): <TODO: offen — decided in the
-  calendar epic>.
+- Calendar credential: the secret ICS feed address per calendar (`calendar-family`, `calendar-person-1`,
+  `calendar-person-2`, key `url`); no passwords, app-specific passwords or OAuth. The address is itself the
+  secret: it is never pasted into chats, tickets or commits, never logged and never part of the snapshot.
+  Only the secret iCal address of Google is allowed, never the guessable public one.
 - The deploy script uses a dedicated passphrase-protected ed25519 key, key-only login, a pinned host
   key (`StrictHostKeyChecking=yes`), transfers only the image and the compose file and never echoes or
   transfers secrets. Docker access on DSM is effectively root-equivalent for the deploy user;

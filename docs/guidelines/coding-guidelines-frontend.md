@@ -75,6 +75,10 @@ after every epic.
   flushes. Canvas drawing takes raw data and is tested with a canvas mock.
 - The strict react-hooks lint rules apply: no state set in effects for derived values, no impure calls in render.
 
+- Tiles that list rows (calendar, lists) measure their body with `useFittingRows` and let the pure `fitRows`
+  decide how many rows, which days collapse and what "+ n weitere" counts; a `budget` prop replaces the
+  measurement in tests. The tile frame of a tile fed by several sources comes from a pure `derive*Entry`
+  function registered as `deriveEntry` (with `sourceIds`).
 - A tile may offer a full-screen detail view (`TileDefinition.detail`, opened from the heading through
   `useDetail()`); the shell renders it as a modal `DetailOverlay` inside the drift container. A detail
   component that holds a draft reports it with `DetailBusyContext` so the overlay does not close it on idle.

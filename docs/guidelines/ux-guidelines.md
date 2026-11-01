@@ -49,6 +49,9 @@ in the home network for lists.
   with a back control (at least 56 px, labelled), Escape support, and automatic closing after two quiet minutes
   unless a draft is open. Rows, checkboxes and buttons there are at least 56 px high on the wall and 44 px on
   the phone; a tile that cannot show everything says "+ n weitere" and the line opens the detail view.
+- A tile with tabs (calendar) returns to its "all" tab after 60 s without input on the wall, so a forgotten
+  selection never stays; the tab buttons are touch targets of the wall size, and the active tab is marked by more
+  than colour.
 - Edits show their state without blocking: a clock icon while saving, a warning icon with "Nicht gespeichert"
   and a retry action when it failed, and "Rückgängig" for a short time after a check or removal.
 - Tile credits and licence notices stay visible on the tile; map overlays never cover the data, so credits

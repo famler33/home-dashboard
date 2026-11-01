@@ -69,7 +69,9 @@ instead of living in the snapshot, which only carries a version id.
 
 Outbound requests go to fixed hosts held as constants in code (never from configuration), with the home
 location rounded to about 1 km, an identifying user agent, no cookies, no referrer, no redirects,
-response size limits and schema validation. Sources of one tile that can fail independently are separate
+response size limits and schema validation. The calendar feeds are the one exception (the address comes from
+`credentials.yaml`, so the host is checked against an allow-list and the resolved address against private ranges;
+see the security guidelines). Sources of one tile that can fail independently are separate
 sources (weather has three), and `sources.<name>.enabled` switches a tile's sources together.
 
 ### Time-dependent text is computed in the frontend
@@ -86,9 +88,12 @@ projection (time zone and display schedule). There is no settings screen.
 
 ### Calendar sources
 
-Events come from a shared Apple (iCloud) calendar and two Google work calendars
-(one per person), merged into one view. Access method per source (ICS link, CalDAV,
-API): <TODO: offen>. Calendar access is read-only.
+Events come from a shared Apple (iCloud) calendar and two Google work calendars (one per person), merged into
+one view in the frontend. Each calendar is its own source (`calendar-family`, `calendar-person-1`,
+`calendar-person-2`) that reads a secret ICS feed address through a guarded transport and expands recurring
+events in the backend into a bounded payload; no CalDAV, no API access, no OAuth. Calendar access is read-only.
+The tile frame is derived from all calendar sources of the tile (`deriveEntry`); a failing calendar is marked on
+its own legend chip instead of turning the whole tile stale.
 
 ### Lists are rebuilt in the repository
 
