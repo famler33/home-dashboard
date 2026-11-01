@@ -46,6 +46,28 @@ describe('tile registry', () => {
     expect(() => assertNoOverlaps(overlapping)).toThrowError(/overlap/);
   });
 
+  it('allows one tile to replace several tiles in the same area', () => {
+    const replacing = [
+      sample('a', { col: 1, row: 1, colSpan: 4, rowSpan: 2 }),
+      sample('b', { col: 1, row: 1, colSpan: 4, rowSpan: 2 }),
+      sample('c', { col: 1, row: 1, colSpan: 4, rowSpan: 2 }, { replaces: ['a', 'b'] }),
+    ];
+    expect(findOverlaps(replacing)).toEqual([['a', 'b']]);
+  });
+
+  it('hides every tile that a list-replacing tile takes the place of', () => {
+    const area = { col: 1, row: 1, colSpan: 4, rowSpan: 2 };
+    const tiles = [
+      sample('a', area),
+      sample('b', area, { sourceId: 'x', requiresSource: true }),
+      sample('c', area, { sourceId: 'y', requiresSource: true, replaces: ['a', 'b'] }),
+    ];
+    const snapshot = snapshotFixture({
+      sources: [sourceFixture({ id: 'x' }), sourceFixture({ id: 'y' })],
+    });
+    expect(visibleTiles(tiles, snapshot).map((tile) => tile.id)).toEqual(['c']);
+  });
+
   it('allows a tile to replace another one in the same area', () => {
     const replacing = [
       sample('a', { col: 1, row: 1, colSpan: 4, rowSpan: 2 }),

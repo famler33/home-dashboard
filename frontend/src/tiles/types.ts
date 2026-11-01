@@ -40,8 +40,8 @@ export interface TileDefinition {
   deriveEntry?: (snapshot: Snapshot | null) => SourceSnapshot | undefined;
   /** Hide the tile while its source is absent from the snapshot. */
   requiresSource?: boolean;
-  /** Id of a tile this one takes the place of while it is visible. */
-  replaces?: string;
+  /** Id(s) of the tiles this one takes the place of while it is visible. */
+  replaces?: string | readonly string[];
   /** Position on the 12 x 6 tablet grid. */
   tablet: GridArea;
   /** Order in the single-column phone layout; lists come first. */

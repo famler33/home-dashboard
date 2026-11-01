@@ -123,8 +123,13 @@ export function visibleTiles(
       (tile.sourceId !== undefined && sourceIds.has(tile.sourceId)) ||
       (tile.sourceIds?.some((id) => sourceIds.has(id)) ?? false),
   );
-  const replaced = new Set(shown.flatMap((tile) => (tile.replaces ? [tile.replaces] : [])));
+  const replaced = new Set(shown.flatMap((tile) => replacedIds(tile)));
   return shown.filter((tile) => !replaced.has(tile.id));
+}
+
+function replacedIds(tile: TileDefinition): readonly string[] {
+  if (tile.replaces === undefined) return [];
+  return typeof tile.replaces === 'string' ? [tile.replaces] : tile.replaces;
 }
 
 function intersects(a: TileDefinition['tablet'], b: TileDefinition['tablet']): boolean {
@@ -140,7 +145,7 @@ export function findOverlaps(registry: readonly TileDefinition[]): [string, stri
   const overlaps: [string, string][] = [];
   registry.forEach((a, i) => {
     registry.slice(i + 1).forEach((b) => {
-      const replacement = a.replaces === b.id || b.replaces === a.id;
+      const replacement = replacedIds(a).includes(b.id) || replacedIds(b).includes(a.id);
       if (!replacement && intersects(a.tablet, b.tablet)) overlaps.push([a.id, b.id]);
     });
   });

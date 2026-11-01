@@ -8,13 +8,13 @@ import type { TileContentProps } from '../types';
 import { AlertBanner, hasActiveAlert } from './AlertBanner';
 import { Credits } from './Credits';
 import { DaysView } from './DaysView';
-import { classifyGesture } from './gestures';
+import { classifyGesture } from '../shared/gestures';
 import { NowView } from './NowView';
 import { describeRain, pickRainSeries } from './rain';
 import { RainView } from './RainView';
 import { isWeatherPayload, type WeatherPayload } from './types';
 import { useInView } from './useInView';
-import { useViewRotation } from './useViewRotation';
+import { useViewRotation } from '../shared/useViewRotation';
 import { viewIds, ViewIndicators, type ViewId } from './ViewIndicators';
 
 const DWELL_MS = 15_000;
