@@ -253,8 +253,8 @@ describe('startServer calendar wiring', () => {
   );
   const calendarSettings = (family: boolean, person1 = false, tile = true) =>
     settings.replace(
-      'sources: { demo: { enabled: true }, weather: { enabled: false } }',
-      `sources: { demo: { enabled: false }, weather: { enabled: false }, calendar: { enabled: ${tile}, kitaKeyword: Kita, calendars: {
+      'sources: { demo: { enabled: true }, weather: { enabled: false }, news: { enabled: false } }',
+      `sources: { demo: { enabled: false }, weather: { enabled: false }, news: { enabled: false }, calendar: { enabled: ${tile}, kitaKeyword: Kita, calendars: {
         family: { enabled: ${family}, name: Familie, color: blue },
         person-1: { enabled: ${person1}, name: Alex, color: green },
         person-2: { enabled: false, name: Ben, color: orange } } } }`,
@@ -490,7 +490,9 @@ describe('startServer news wiring', () => {
     writeFileSync(join(root, 'config', 'settings.yaml'), settingsWithNews(''));
     const { fetchImpl } = newsFetch(true);
     server = await startServer(env(), { fetchImpl, now: newsNow });
-    await until(async () => (await newsSources(server!.url)).some((s) => s.id === 'news-global' && s.status === 'fresh'));
+    await until(async () =>
+      (await newsSources(server!.url)).some((s) => s.id === 'news-global' && s.status === 'fresh'),
+    );
     const byId = Object.fromEntries((await newsSources(server.url)).map((s) => [s.id, s.status]));
     expect(byId['news-global']).toBe('fresh');
     expect(byId['news-local']).toBe('error');

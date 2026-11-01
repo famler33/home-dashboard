@@ -1,6 +1,7 @@
 import { chmodSync, mkdirSync, readdirSync, renameSync, rmSync, statSync } from 'node:fs';
 import { join } from 'node:path';
-import type Database from 'better-sqlite3';
+import Database from 'better-sqlite3';
+import { purgeSourceState } from '../cache/snapshot-store.js';
 import type { Clock } from '../clock.js';
 import type { Logger } from '../logger.js';
 import type { Scheduler } from '../scheduler/scheduler.js';
@@ -20,6 +21,16 @@ function ensureDirectory(dir: string): void {
     chmodSync(dir, 0o700);
   } catch {
     // A bind mount owned by another user keeps its own mode; the runbook documents it.
+  }
+}
+
+/** The news feeds forbid archiving, so backup copies never contain headlines. */
+function stripLicensedContent(file: string): void {
+  const copy = new Database(file);
+  try {
+    purgeSourceState(copy, 'news-');
+  } finally {
+    copy.close();
   }
 }
 
@@ -48,6 +59,7 @@ export function createBackupJob(deps: {
       const temporary = join(dir, `${name}.tmp`);
       try {
         await db.backup(temporary);
+        stripLicensedContent(temporary);
         renameSync(temporary, join(dir, name));
       } catch (error) {
         rmSync(temporary, { force: true });

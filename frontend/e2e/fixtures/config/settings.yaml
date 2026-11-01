@@ -12,6 +12,8 @@ sources:
     enabled: false
   weather:
     enabled: false
+  news:
+    enabled: false
 backup:
   time: '03:00'
   retention: 3

@@ -40,6 +40,9 @@ export const settingsSchema = Type.Object(
         weather: Type.Optional(
           Type.Object({ enabled: Type.Boolean() }, { additionalProperties: false }),
         ),
+        news: Type.Optional(
+          Type.Object({ enabled: Type.Boolean() }, { additionalProperties: false }),
+        ),
         calendar: Type.Optional(
           Type.Object(
             {

@@ -31,6 +31,10 @@ sources:
   weather:
     # Set to false to switch the whole weather tile off.
     enabled: true
+  # News tile: local (rbb24) and national/international (Tagesschau) headlines from public feeds.
+  news:
+    # Set to false to switch the whole news tile off.
+    enabled: true
   # Calendar tile: the shared family calendar and the two work calendars in one agenda.
   # Needs one feed address per enabled calendar in credentials.yaml (see the runbook).
   calendar:

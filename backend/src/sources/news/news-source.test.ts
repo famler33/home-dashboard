@@ -15,7 +15,12 @@ function create(group: 'local' | 'global', body?: string, status = 200) {
   const fetchImpl = vi.fn(
     async () => new Response(text, { status, headers: { 'content-type': 'application/xml' } }),
   ) as unknown as typeof fetch & ReturnType<typeof vi.fn>;
-  const source = createNewsSource({ group, fetchImpl, userAgent: 'home-dashboard/test', now: () => now });
+  const source = createNewsSource({
+    group,
+    fetchImpl,
+    userAgent: 'home-dashboard/test',
+    now: () => now,
+  });
   return { source, fetchImpl: fetchImpl as unknown as ReturnType<typeof vi.fn> };
 }
 

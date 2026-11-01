@@ -18,6 +18,7 @@ import { createScheduler } from './scheduler/scheduler.js';
 import { createDemoSource } from './sources/demo-source.js';
 import { registerSources } from './sources/register-sources.js';
 import { createSourceRunner } from './sources/source-runner.js';
+import { createNewsSource } from './sources/news/news-source.js';
 import { createAlertsSource } from './sources/weather/alerts-source.js';
 import { createBasemapService } from './sources/weather/basemap.js';
 import { createWeatherSource } from './sources/weather/open-meteo-source.js';
@@ -94,6 +95,15 @@ export async function startServer(
       createAlertsSource({ location, fetchImpl, userAgent, ...nowOption }),
     );
     weather = { radarStore, basemap };
+  }
+
+  if (config.settings.sources.news?.enabled !== false) {
+    const fetchImpl = overrides.fetchImpl ?? fetch;
+    const userAgent = `home-dashboard/${buildId}`;
+    const nowOption = overrides.now ? { now: overrides.now } : {};
+    for (const group of ['local', 'global'] as const) {
+      sources.push(createNewsSource({ group, fetchImpl, userAgent, ...nowOption }));
+    }
   }
 
   const loggerRef: { current?: Logger } = {};

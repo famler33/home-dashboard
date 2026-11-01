@@ -81,3 +81,15 @@ export function createSnapshotStore(db: Database.Database): SnapshotStore {
     },
   };
 }
+
+/**
+ * Removes the stored state of every source whose id starts with `prefix` from a database
+ * (used on backup copies, so no history of licensed content accumulates) and compacts the
+ * file so the deleted payloads do not linger in free pages.
+ */
+export function purgeSourceState(db: Database.Database, prefix: string): void {
+  db.prepare("DELETE FROM source_state WHERE source_id LIKE ? ESCAPE '\\'").run(
+    `${prefix.replace(/[\\%_]/g, '\\$&')}%`,
+  );
+  db.exec('VACUUM');
+}

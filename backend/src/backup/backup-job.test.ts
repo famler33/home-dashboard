@@ -67,7 +67,11 @@ describe('backup job', () => {
   it('leaves news headlines out of the copy and keeps them in the live database', async () => {
     const store = createSnapshotStore(db);
     store.recordSuccess('demo', { value: 1 }, 1_000);
-    store.recordSuccess('news-local', { headlines: [{ title: 'Streng geheime Schlagzeile' }] }, 1_000);
+    store.recordSuccess(
+      'news-local',
+      { headlines: [{ title: 'Streng geheime Schlagzeile' }] },
+      1_000,
+    );
     store.recordSuccess('news-global', { headlines: [{ title: 'Noch eine Schlagzeile' }] }, 1_000);
     const target = join(dir, 'backup');
     await createBackupJob({
