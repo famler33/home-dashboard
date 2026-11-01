@@ -49,6 +49,10 @@ in the home network for lists.
   with a back control (at least 56 px, labelled), Escape support, and automatic closing after two quiet minutes
   unless a draft is open. Rows, checkboxes and buttons there are at least 56 px high on the wall and 44 px on
   the phone; a tile that cannot show everything says "+ n weitere" and the line opens the detail view.
+- A tile that cycles through items (news) shows one item at a time with a position counter, previous and next
+  buttons of at least 56 px, tap and swipe support, and the same pause and stale rules as the weather rotation.
+  Dense tiles drop their footer and show staleness on the item itself ("Veraltet · vor 40 Min." with a clock
+  icon); titles use at most two lines, one on short screens. Content from third parties always names its source.
 - A tile with tabs (calendar) returns to its "all" tab after 60 s without input on the wall, so a forgotten
   selection never stays; the tab buttons are touch targets of the wall size, and the active tab is marked by more
   than colour.
@@ -72,7 +76,7 @@ in the home network for lists.
 - Distinctive, polished, minimalist design with purposeful animation; calm rather than flashy:
   staggered tile entrance, a slow ambient background and a rolling clock. No parallax or particles.
 - Ambient symbol animations (weather) last at least 6 s per cycle; view changes use one shared fade
-  (150 ms under "reduce motion"); canvas loops show one still frame under "reduce motion".
+  (`view-enter` and `view-exit`, 600 ms and 150 ms under "reduce motion"; the detail view uses the same class); canvas loops show one still frame under "reduce motion".
 - Animate transform/opacity only. With "reduce motion" the entrance becomes a 150 ms fade, the
   ambient background stops and the clock swaps digits without movement.
 - Burn-in protection: the shell shifts through eight positions of at most 8 px every 5 minutes (half

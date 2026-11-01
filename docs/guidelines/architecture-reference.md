@@ -74,6 +74,21 @@ response size limits and schema validation. The calendar feeds are the one excep
 see the security guidelines). Sources of one tile that can fail independently are separate
 sources (weather has three), and `sources.<name>.enabled` switches a tile's sources together.
 
+### Licensed content stays out of backups
+
+The nightly backup writes a consistent copy with the online backup API and then removes every `news-` row from
+that copy (`purgeSourceState` followed by `VACUUM`), because the rbb24 feed must not be archived. Live data keeps
+only the current headlines (each fetch overwrites the previous payload). Any future source with a similar licence
+is added to the same purge by its source-id prefix. A restored database shows such a tile as never loaded until
+the first fetch.
+
+### Source grouping and tile registry
+
+A tile fed by several sources lists them in `sourceIds` and derives its frame from them (`deriveEntry`); a
+placeholder entry is replaced by its live entry through `replaces`, which takes one id or a list (the news tile
+replaces both its placeholder and the demo tile). Cross-tile behaviour that more than one tile needs, such as view
+rotation and gesture classification, lives in `frontend/src/tiles/shared/`.
+
 ### Time-dependent text is computed in the frontend
 
 Statements that depend on the current time (the rain statement "Regen ab 14:30") are computed in the

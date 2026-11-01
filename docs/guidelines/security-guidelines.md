@@ -70,6 +70,11 @@ assets: calendar data (including work calendars) and API/calendar credentials.
   and checks every hop again, accepts only `text/calendar`, `text/plain` or `application/octet-stream` and a body
   that starts with `BEGIN:VCALENDAR`, limits the size before and after decompression (8 MB) and uses one abort
   signal. Rejections carry a closed reason, never the address or feed text.
+- Text feeds (news) additionally need an `xml` content type, a size limit (512,000 bytes) and `redirect: 'error'`;
+  the parser never processes entities or a DOCTYPE, titles are reduced to plain text (markup, control characters
+  and angle brackets removed) and rendered as text, and no feed link, image or summary is carried to the display.
+  Upstream text and addresses are never logged.
+- Feeds whose licence forbids archiving (rbb24) are kept out of backup copies (see the architecture reference).
 - Location sent upstream is rounded to two decimals (about 1 km).
 - The map tile proxy serves only integer tile coordinates on the allow-list taken from the current radar
   document, checks content type and PNG magic bytes and caps its disk cache (64 files, 8 MiB, 512 KiB per tile).

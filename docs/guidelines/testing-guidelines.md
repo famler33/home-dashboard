@@ -72,7 +72,7 @@ Additional checks:
   affected criteria unverified.
 - Accelerated soak (virtual clock, heap sample): `pnpm run e2e:soak` from `frontend/`
   (`SOAK_MINUTES`, default 10). It is excluded from the default Playwright run. `frontend/e2e/soak.spec.ts`
-  holds one `@soak` test per long-running part (base polling, calendar tabs being switched, lists being edited); run them serially
+  holds one `@soak` test per long-running part (base polling, calendar tabs being switched, news rotating and being switched by hand, lists being edited); run them serially
   (`--workers=1`) so the heap samples are not disturbed by parallel browsers.
 - The lists end-to-end tests run against a fresh database per Playwright start, because removed rows keep
   counting towards the row limit for an hour.

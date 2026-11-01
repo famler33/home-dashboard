@@ -30,7 +30,7 @@ file after every epic.
 
 - SQLite file in the bind-mounted `data/` folder that survives container updates.
 - Nightly online backup by the application into the bind-mounted `backup/` folder (mode 0700,
-  atomic rename, newest N copies kept, database only); the NAS's own backup tools pick that folder
+  atomic rename, newest N copies kept, database only, without licensed news rows); the NAS's own backup tools pick that folder
   up. Restore is a documented manual procedure (stop, copy, remove the WAL files, start).
 
 ## Tile cache

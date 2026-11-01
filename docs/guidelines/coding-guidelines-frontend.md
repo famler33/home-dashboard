@@ -75,6 +75,14 @@ after every epic.
   flushes. Canvas drawing takes raw data and is tested with a canvas mock.
 - The strict react-hooks lint rules apply: no state set in effects for derived values, no impure calls in render.
 
+- Behaviour used by more than one tile lives in `src/tiles/shared/`: `useViewRotation` (index, dwell and resume
+  timers, pause after manual input, `goTo`/`next`/`prev`; automatic rotation can be switched off while manual
+  switching keeps working) and `classifyGesture` (tap within 10 px, horizontal swipe from 60 px that dominates by
+  1.5 times). A tile with views keeps the outgoing view mounted only for the length of the fade.
+- `TileDefinition` fields beyond the basics: `sourceIds` and `deriveEntry` for tiles fed by several sources,
+  `requiresSource` to show a live entry only when its source exists, `replaces` (one id or a list) for the
+  entries it takes the place of, `stateTexts`, `freshFooter: false` when staleness is shown inside the tile, and
+  `dense` for a compact frame without a footer whose heading is screen-reader-only on short screens.
 - Tiles that list rows (calendar, lists) measure their body with `useFittingRows` and let the pure `fitRows`
   decide how many rows, which days collapse and what "+ n weitere" counts; a `budget` prop replaces the
   measurement in tests. The tile frame of a tile fed by several sources comes from a pure `derive*Entry`
