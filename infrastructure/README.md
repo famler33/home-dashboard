@@ -54,7 +54,10 @@ Voraussetzungen: DSM 7.2 oder neuer mit **Container Manager**, SSH aktiviert (nu
 1. **Container Manager starten lassen:** Im Paket-Zentrum prüfen, dass Container Manager installiert ist und
    nach einem Neustart automatisch startet. Projekte mit `restart: unless-stopped` starten dann von selbst
    wieder.
-2. **Ordner anlegen** (Dateistation oder SSH): `config`, `data`, `backup` unter `/volume1/docker/home-dashboard`.
+2. **Ordner anlegen** (nur per SSH, nicht in der Dateistation): `config`, `data`, `backup` unter
+   `/volume1/docker/home-dashboard`. Die Dateistation legt Ordner mit Modus 777 und einer zusätzlichen Zugriffsliste
+   (`+` in `ls -l`) an, die die Rechte aus Schritt 4 überstimmt. Prüfen mit `ls -ld` und bei Bedarf mit
+   `synoacltool -get <Pfad>`.
 3. **Benutzer für das Dashboard festlegen:** UID und GID des NAS-Benutzers ermitteln, dem diese Ordner
    gehören (`id <benutzer>` per SSH, z. B. `1000` und `100`). Den Ordnern genau diesen Besitzer geben.
 4. **Berechtigungen:** `backup/` mit Modus `0700`, `config/credentials.yaml` mit Modus `0600`, beides im
@@ -77,15 +80,56 @@ Voraussetzungen: DSM 7.2 oder neuer mit **Container Manager**, SSH aktiviert (nu
 
 - Auf dem Mac einen eigenen Schlüssel nur für Deployments erzeugen und mit Passphrase schützen
   (macOS-Schlüsselbund): `ssh-keygen -t ed25519 -f ~/.ssh/home-dashboard-deploy`.
-- Auf dem NAS einen eigenen Benutzer (z. B. `dashboard-deploy`) mit der öffentlichen Schlüsseldatei
-  (`authorized_keys`) anlegen. Passwort-Login für diesen Benutzer ausschalten, SSH nur aus dem LAN zulassen.
+- Auf dem NAS einen eigenen Benutzer (z. B. `dashboard-deploy`) anlegen. Den Inhalt der Datei `….pub` (eine Zeile) trägst
+  du in `~/.ssh/authorized_keys` dieses Benutzers ein (bei einem neu erzeugten Schlüssel die alte Zeile ersetzen). Passwort-Login für diesen Benutzer ausschalten, SSH nur aus dem LAN zulassen.
 - Den Host-Schlüssel des NAS einmalig prüfen und in `known_hosts` eintragen (`ssh-keyscan` und
   Fingerabdruck am NAS vergleichen). Das Skript verwendet `StrictHostKeyChecking=yes`, also keine
   automatische Annahme unbekannter Hosts.
-- **Ehrlicher Hinweis:** Unter DSM ist Docker-Zugriff praktisch gleichbedeutend mit Root-Rechten. Der Benutzer
-  braucht das Recht, `docker` auszuführen; je nach DSM-Version geht das nur mit Mitgliedschaft in der
-  Administratoren-Gruppe. Dann bleibt der Benutzer ein dedizierter Schlüssel-Benutzer ohne Passwort, nur im
-  LAN, und der Schlüssel liegt ausschließlich auf dem Mac.
+- **Ehrlicher Hinweis:** Unter DSM ist Docker-Zugriff gleichbedeutend mit Root-Rechten, und SSH darf nur die Gruppe
+  `administrators`. Der Deploy-Benutzer ist deshalb effektiv Root. Das ist nur vertretbar, solange der Schlüssel mit
+  Passphrase nur auf dem Mac liegt, SSH nur aus dem LAN erreichbar ist und der Passwort-Login abgeschaltet ist.
+
+### Einmalig pro NAS: DSM und Docker für den Deploy-Benutzer vorbereiten
+
+1. **Benutzer-Home:** Systemsteuerung → Benutzer & Gruppe → Erweitert → „Benutzer-Home-Dienst aktivieren“. Ohne Home gibt es
+   kein `~/.ssh`.
+2. **Gruppe:** Den Deploy-Benutzer in `administrators` aufnehmen (sonst lehnt DSM SSH ab).
+3. **Schlüssel auf dem NAS** (als Admin, `sudo -i`): `~/.ssh` mit Modus 700, `authorized_keys` mit 600, beides im Besitz des
+   Deploy-Benutzers; das Home darf nicht für Gruppe oder Andere schreibbar sein. Sonst ignoriert sshd den Schlüssel, und
+   das Deploy-Skript (`BatchMode`) bricht ohne Passwort-Rückfrage ab.
+4. **Docker-Socket:** `/var/run/docker.sock` gehört `root:root` (Modus 660), es gibt keine Gruppe `docker`. Als Root:
+   `synogroup --add docker <deploy-benutzer>` und `chown root:docker /var/run/docker.sock`. Damit es einen Neustart
+   überlebt: Systemsteuerung → Aufgabenplaner → Erstellen → Ausgelöste Aufgabe → Benutzerdefiniertes Skript, Benutzer
+   **root**, Ereignis **Hochfahren**, Befehl:
+   `for i in $(seq 1 60); do [ -S /var/run/docker.sock ] && break; sleep 5; done; chown root:docker /var/run/docker.sock`.
+   Nach einem Neustart des Docker-Dienstes oder einem Container-Manager-Update die Rechte prüfen
+   (`ls -l /var/run/docker.sock` muss `root docker` zeigen). Die Gruppenmitgliedschaft gilt erst in einer neuen
+   SSH-Sitzung. Nur der Deploy-Benutzer gehört in diese Gruppe.
+5. **Mac:** Docker läuft (der Build nutzt `--platform linux/amd64`), der Schlüssel liegt im Agenten
+   (`ssh-add --apple-use-keychain ~/.ssh/home-dashboard-deploy`; das Skript kann keine Passphrase abfragen), und der
+   Host-Schlüssel des NAS steht in `known_hosts` unter genau dem Namen aus `NAS_HOST` (Fingerabdruck am NAS mit
+   `ssh-keygen -lf /etc/ssh/ssh_host_ed25519_key.pub` vergleichen; die Datei lässt sich mit `NAS_KNOWN_HOSTS` wählen).
+6. **Schlüssel ohne Passphrase erkennen:** `ssh-keygen` ohne echtes Terminal (z. B. in einer Assistenten-Shell) legt den
+   Schlüssel ohne Passphrase an, ohne Warnung. Prüfen mit `ssh-keygen -y -P "" -f ~/.ssh/home-dashboard-deploy`: Gelingt
+   das, fehlt die Passphrase; dann in Terminal.app `ssh-keygen -p -f ~/.ssh/home-dashboard-deploy` ausführen.
+7. **Passwort-Login abschalten:** Erst wenn der Schlüssel-Login in einer **zweiten** Sitzung geklappt hat; die erste
+   Sitzung offen lassen. Danach prüfen, dass `ssh -o PubkeyAuthentication=no <benutzer>@<NAS>` abgelehnt wird.
+
+### Konfiguration auf das NAS bringen
+
+Das NAS bietet kein SFTP; `settings.yaml`, `credentials.yaml` und `.env` gehen mit dem alten Protokoll:
+`scp -O -i ~/.ssh/home-dashboard-deploy <datei> <benutzer>@<NAS>:<NAS_DIR>/config/`. Der Deploy-Benutzer kann Dateien nur
+an sich selbst übergeben; Besitzer und Rechte der Ordner setzt ein Admin einmalig mit `sudo`. Vor dem ersten Deploy:
+SSH-Login, `docker version`, Besitz und Modus von `config/`, `data/`, `backup/`, vorhandene `.env`. `DRY_RUN=1`
+prüft nichts am NAS (kein SSH, keine Rechte), er ersetzt diese Prüfung nicht.
+
+### Eine zweite Anwendung auf demselben NAS
+
+Einmalig pro NAS (also schon erledigt): DSM-Vorbereitung, Deploy-Benutzer, Docker-Socket und Boot-Task, Host-Schlüssel,
+Mac-Voraussetzungen. Pro Anwendung: eigener Projektordner und `NAS_DIR`, eigener Port und eigene Firewall-Regel,
+`.env`, `config/` und eigenes `deploy.env`. `scripts/deploy.sh` ist aber auf dieses Projekt festgelegt (Container- und
+Image-Name `home-dashboard`, Pfad des Dockerfiles, Port 8080 im Healthcheck): Für eine zweite Anwendung müssten Name
+und Dockerfile-Pfad in `deploy.env` und in der Compose-Datei parametrisiert werden.
 
 ## Update
 
@@ -124,7 +168,8 @@ Wiederherstellen:
 1. Projekt in Container Manager stoppen (oder `docker compose stop` im Projektordner).
 2. Die gewünschte Datei `backup/dashboard-….sqlite` nach `data/dashboard.sqlite` kopieren.
 3. Daneben liegende Dateien `data/dashboard.sqlite-wal` und `data/dashboard.sqlite-shm` löschen.
-4. Projekt wieder starten und `http://dashboard.home` prüfen.
+4. Projekt wieder starten: auf dem NAS `cd <NAS_DIR> && BUILD_ID=$(cat .current-build) /usr/local/bin/docker compose up -d`
+   (nicht über Container Manager, der das Image `home-dashboard:dev` suchen würde), dann `http://dashboard.home` prüfen.
 
 ## Wetter
 
@@ -281,7 +326,9 @@ kompakt die übrigen Kacheln. Ohne Login kann jedes Gerät im Heimnetz Listen an
 | Kacheln gelb „Veraltet“ | Quelle oder Internet gestört; die zuletzt bekannten Daten bleiben sichtbar, der Abruf wird laufend wiederholt. |
 | Punkt „Keine Verbindung“ | Das Tablet erreicht das NAS nicht (WLAN, NAS aus, Container gestoppt). Es erholt sich selbst. |
 | Deploy bricht mit Host-Schlüssel-Fehler ab | `known_hosts` prüfen; Fingerabdruck am NAS vergleichen, nie Prüfung abschalten. |
-| `docker: permission denied` beim Deploy | Docker-Rechte des Deploy-Benutzers prüfen (siehe Hinweis oben). |
+| `docker: permission denied` beim Deploy | Socket-Gruppe und Boot-Task prüfen (Abschnitt „Einmalig pro NAS“); `ls -l /var/run/docker.sock` muss `root docker` zeigen. |
+| SSH fragt trotz Schlüssel nach dem Passwort | Der NAS kennt den Schlüssel nicht (nach einer Neuerzeugung die Zeile in `authorized_keys` ersetzen), Rechte von `~/.ssh` oder dem Home falsch, oder der Benutzer ist nicht in `administrators`. |
+| Mac-Browser erreicht das NAS nicht, Handy schon | Systemeinstellungen → Datenschutz & Sicherheit → Lokales Netzwerk: den Browser freigeben und neu starten (Cmd+Q). |
 
 ## Aufräumen
 
