@@ -23,3 +23,6 @@ frontend/e2e/screenshots/
 
 # Scratch folders of the Docker-gated tests
 .docker-test-*/
+
+# Personal Claude Code settings (sandbox paths etc.)
+.claude/settings.local.json

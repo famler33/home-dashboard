@@ -61,7 +61,6 @@ test('renders the full dashboard with sample data for the README', async ({ page
   };
 
   await page.clock.install({ time: weatherInstant });
-  await page.setViewportSize({ width: 1600, height: 1000 });
   await page.route('**/api/v1/snapshot', (route) => route.fulfill({ json: body }));
   await page.route('**/api/v1/weather/radar', (route) => route.fulfill({ json: radarDocument() }));
   await page.route('**/api/v1/weather/basemap/**', (route) =>
