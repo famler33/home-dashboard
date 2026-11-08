@@ -29,6 +29,10 @@
       "Bash(git clean:*)",
       "Bash(gh pr create:*)",
       "Bash(gh pr merge:*)"
+    ],
+    "deny": [
+      "Read(./scripts/deploy.env)",
+      "Read(./infrastructure/.env)"
     ]
   }
 }
