@@ -1,5 +1,9 @@
 # Home-Dashboard
 
+**Deutsch** · [English](README.en.md)
+
+![Das Dashboard auf einem Wandtablet, mit Beispieldaten](docs/screenshot.png)
+
 Ein privates Familien-Dashboard für ein wandmontiertes Tablet: Wetter, ein gemeinsamer
 Kalender, Einkaufsliste und To-dos sowie Nachrichten-Schlagzeilen auf einen Blick,
 mit ruhigen Animationen und aus Distanz gut lesbar. Es läuft als Docker-Container auf
@@ -86,6 +90,9 @@ pnpm dev
 Das Backend liest `settings.yaml` und `credentials.yaml` aus einem Konfigurationsordner.
 Vorlagen mit Platzhaltern liegen in [`infrastructure/config.example/`](infrastructure/config.example/).
 Echte Werte gehören nie ins Repository.
+
+Den Screenshot mit Beispieldaten erneuern:
+`cd frontend && SCREENSHOT=1 pnpm exec playwright test e2e/screenshot.spec.ts`.
 
 ## Betrieb auf dem NAS
 
